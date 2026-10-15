@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editor Visual</title>
+<style>
+:root {
+  --anil: #2b3a8f; --anil-medio: #4a64c0; --degrade: linear-gradient(135deg, #2b3a8f, #4a64c0 55%, #86d4f5);
+  --page: #f4f5f8; --card: #fff; --texto: #111827; --texto-2: #4b5563; --mudo: #8a909c; --borda: rgba(17,24,39,.1);
+  --ok: #0f9d58; --erro: #dc2626; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --page: #0e1014; --card: #171a21; --texto: #f3f4f6; --texto-2: #b6bcc8; --mudo: #7c8391; --borda: rgba(255,255,255,.1); color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 14px/1.45 "Segoe UI", system-ui, sans-serif; background: var(--page); color: var(--texto);
+       display: grid; grid-template-columns: 230px 1fr; height: 100vh; }
+nav { background: var(--card); border-right: 1px solid var(--borda); padding: 18px 12px; display: flex; flex-direction: column; gap: 4px; }
+nav h1 { font-size: 17px; margin: 0 8px 14px; }
+nav button { text-align: left; border: 0; background: none; color: var(--texto); padding: 9px 12px; border-radius: 9px; font: inherit; cursor: pointer; }
+nav button.ativo { background: var(--degrade); color: #fff; font-weight: 600; }
+nav small { margin: auto 8px 0; color: var(--mudo); }
+main { overflow: auto; padding: 22px 28px 120px; }
+.barra { position: sticky; top: 0; z-index: 2; background: var(--page); padding-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.barra h2 { margin: 0 auto 0 0; font-size: 20px; }
+button.b { font: inherit; border: 1px solid var(--borda); background: var(--card); color: var(--texto); border-radius: 9px; padding: 7px 13px; cursor: pointer; }
+button.prim { background: var(--degrade); color: #fff; border: 0; font-weight: 600; }
+button:disabled { opacity: .5; cursor: default; }
+.filtro { width: 220px; font: inherit; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--borda); background: var(--card); color: var(--texto); }
+h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--mudo); margin: 22px 0 8px; }
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.cor { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--borda); border-radius: 10px; padding: 7px 10px; }
+.cor.mudou { border-color: var(--anil-medio); box-shadow: 0 0 0 2px color-mix(in srgb, var(--anil-medio) 30%, transparent); }
+.cor input[type=color] { width: 38px; height: 30px; border: 0; padding: 0; background: none; cursor: pointer; }
+.cor .n { font-weight: 600; font-size: 13px; } .cor .h { font-family: Consolas, monospace; font-size: 12px; color: var(--mudo); }
+#status { position: fixed; bottom: 16px; right: 20px; max-width: 520px; background: var(--card); border: 1px solid var(--borda);
+          border-radius: 12px; padding: 12px 16px; box-shadow: 0 8px 30px rgba(0,0,0,.2); display: none; white-space: pre-wrap; }
+#status a { color: var(--anil-medio); }
+.ajuda { color: var(--texto-2); max-width: 900px; margin: 0 0 6px; }
+</style>
+</head>
+<body>
+<nav id="nav"><h1>🎨 Editor Visual</h1><small>Suíte Angerô · TI</small></nav>
+<main>
+  <div class="barra">
+    <h2 id="titulo">…</h2>
+    <input class="filtro" id="filtro" placeholder="Filtrar (ex.: accent, panel, text)">
+    <button class="b" id="btnDestaque" title="Troca todas as cores de destaque (accent) pelo anil da folha Angerô">Destaque Angerô</button>
+    <button class="b" id="btnDesfazer">Desfazer</button>
+    <button class="b prim" id="btnSalvar" disabled>Salvar</button>
+    <button class="b prim" id="btnPublicar">Publicar</button>
+  </div>
+  <p class="ajuda">Clique numa cor para trocar. <b>Salvar</b> grava no código do programa (commit). <b>Publicar</b> envia ao GitHub:
+    a versão nova é compilada sozinha (~40 min) e as Suítes instaladas se atualizam. Os nomes vêm do código
+    (<i>accent</i> = cor de destaque, <i>panel</i> = painéis, <i>text</i> = texto, <i>app bar</i> = barra de cima, <i>hover</i> = ao passar o mouse).</p>
+  <div id="conteudo"></div>
+</main>
+<div id="status"></div>
+<script>
+const $ = s => document.querySelector(s);
+let dados = {}, atual = null, mudancas = {};
+const ANIL = "#3f55a6";
+
+async function api(rota, corpo) {
+  const op = corpo === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json", "X-Editor": "1" }, body: JSON.stringify(corpo) };
+  return (await fetch(rota, op)).json();
+}
+function status(txt, ms = 8000) { const s = $("#status"); s.innerHTML = txt; s.style.display = "block"; clearTimeout(s._t); if (ms) s._t = setTimeout(() => s.style.display = "none", ms); }
+
+function render() {
+  const p = dados[atual]; $("#titulo").textContent = p.programa || atual;
+  const box = $("#conteudo"); box.innerHTML = "";
+  if (p.erro) { box.textContent = p.erro; return; }
+  const f = $("#filtro").value.toLowerCase();
+  const grupos = {};
+  for (const c of p.cores) if (!f || c.nome.includes(f) || c.grupo.toLowerCase().includes(f)) (grupos[c.grupo] ||= []).push(c);
+  for (const [g, lista] of Object.entries(grupos)) {
+    box.insertAdjacentHTML("beforeend", `<h3>${g}</h3>`);
+    const grade = document.createElement("div"); grade.className = "grade";
+    for (const c of lista) {
+      const valor = mudancas[c.linha] || c.cor;
+      const el = document.createElement("label"); el.className = "cor" + (mudancas[c.linha] ? " mudou" : "");
+      el.innerHTML = `<input type="color" value="${valor}"><div><div class="n">${c.nome}</div><div class="h">${valor}</div></div>`;
+      el.querySelector("input").addEventListener("input", ev => {
+        const v = ev.target.value;
+        if (v === c.cor) delete mudancas[c.linha]; else mudancas[c.linha] = v;
+        el.classList.toggle("mudou", !!mudancas[c.linha]); el.querySelector(".h").textContent = v; contar();
+      });
+      grade.append(el);
+    }
+    box.append(grade);
+  }
+}
+function contar() { const n = Object.keys(mudancas).length; $("#btnSalvar").disabled = !n; $("#btnSalvar").textContent = n ? `Salvar (${n})` : "Salvar"; }
+
+function escolher(pid) {
+  if (Object.keys(mudancas).length && !confirm("Há cores não salvas. Descartar?")) return;
+  atual = pid; mudancas = {}; contar();
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("ativo", b.dataset.id === pid));
+  render();
+}
+
+async function carregar() {
+  dados = await api("/api/programas");
+  const nav = $("#nav");
+  for (const [pid, p] of Object.entries(dados)) {
+    const b = document.createElement("button"); b.dataset.id = pid; b.textContent = p.programa || pid;
+    b.addEventListener("click", () => escolher(pid)); nav.insertBefore(b, nav.querySelector("small"));
+  }
+  escolher(atual || Object.keys(dados)[0]);
+}
+
+$("#filtro").addEventListener("input", render);
+$("#btnDestaque").addEventListener("click", () => {
+  for (const c of dados[atual].cores) if (/^accent$|^accent (strong|hover)$/.test(c.nome)) mudancas[c.linha] = ANIL;
+  contar(); render(); status("Cores de destaque trocadas pelo anil Angerô. Confira e clique em Salvar.");
+});
+$("#btnDesfazer").addEventListener("click", () => { mudancas = {}; contar(); render(); });
+$("#btnSalvar").addEventListener("click", async () => {
+  const alteracoes = Object.entries(mudancas).map(([linha, cor]) => ({ linha: +linha, cor }));
+  const msg = prompt("Descreva a mudança (vai para o histórico):", "visual: ajuste de cores");
+  if (msg === null) return;
+  const r = await api("/api/salvar", { programa: atual, alteracoes, mensagem: msg });
+  status(r.commit ? `✓ ${r.alteradas} cores salvas (commit feito). Clique em Publicar para mandar para todos.` : "Nada para salvar.\n" + (r.saida || ""));
+  mudancas = {}; dados = await api("/api/programas"); contar(); render();
+});
+$("#btnPublicar").addEventListener("click", async () => {
+  if (!confirm("Publicar no GitHub? A versão nova será compilada e instalada em todos os computadores.")) return;
+  status("Enviando…", 0);
+  const r = await api("/api/publicar", { programa: atual });
+  status(r.ok ? `✓ Publicado. Acompanhe a compilação: <a href="${r.acompanhar}" target="_blank">${r.acompanhar}</a>` : "✕ Falhou:\n" + r.saida, 0);
+});
+carregar();
+</script>
+</body>
+</html>

@@ -2,6 +2,18 @@
 
 Guia para o TI mexer em cores, textos, ícones e nomes por conta própria.
 
+## Jeito rápido: Editor Visual (cores)
+
+Atalho **Editor Visual - Suíte Angerô** na Área de Trabalho (ou `pythonw ferramentas\editor_visual.py`).
+
+1. Escolha o programa na lateral.
+2. Clique na caixinha da cor e escolha a nova (use o filtro: *accent* = destaque, *panel* = painéis, *text* = texto).
+   **Destaque Angerô** troca de uma vez as cores de destaque pelo anil da marca.
+3. **Salvar** grava no código (commit) · **Publicar** envia ao GitHub. Em ~40 min a versão nova sai sozinha
+   e as Suítes instaladas se atualizam.
+
+Para textos, ícones e nomes, siga as seções abaixo.
+
 ## 1. Preparar (uma vez)
 
 1. Instale o **VS Code** (`winget install Microsoft.VisualStudioCode`) e, dentro dele, a extensão **rust-analyzer**.
