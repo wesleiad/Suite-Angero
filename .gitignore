@@ -1,0 +1,12 @@
+# extensões de terceiros instaladas localmente (código proprietário: não publicar)
+plugins/*
+!plugins/LEIA-ME.md
+
+# Python
+__pycache__/
+*.pyc
+
+# gerados
+icones/previa.png
+dist/
+*.log

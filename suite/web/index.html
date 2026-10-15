@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suíte Angerô</title>
+<link rel="icon" href="/web/img/suite.svg">
+<style>
+:root {
+  --anil: #2b3a8f; --anil-medio: #4a64c0; --ceu: #86d4f5;
+  --degrade: linear-gradient(135deg, #2b3a8f 0%, #4a64c0 55%, #86d4f5 100%);
+  --page: #f4f5f8; --card: #ffffff; --texto: #111827; --texto-2: #4b5563; --mudo: #8a909c;
+  --borda: rgba(17,24,39,.09); --suave: #eef1f8; --ok: #0f9d58; --erro: #dc2626;
+  --sombra: 0 1px 2px rgba(17,24,39,.04), 0 6px 20px rgba(17,24,39,.06);
+  --raio: 16px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0e1014; --card: #171a21; --texto: #f3f4f6; --texto-2: #b6bcc8; --mudo: #7c8391;
+    --borda: rgba(255,255,255,.08); --suave: #1f2430; --sombra: 0 6px 20px rgba(0,0,0,.3);
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.45 "Segoe UI", system-ui, sans-serif; background: var(--page); color: var(--texto);
+       height: 100vh; display: grid; grid-template-columns: 1fr 400px; overflow: hidden; }
+main { overflow: auto; padding: 28px 36px 40px; }
+header { display: flex; align-items: center; gap: 16px; margin-bottom: 26px; }
+header img { height: 54px; background: #fff; border-radius: 12px; padding: 6px 10px; box-shadow: var(--sombra); }
+header h1 { margin: 0; font-size: 24px; letter-spacing: -.01em; }
+header p { margin: 2px 0 0; color: var(--texto-2); font-size: 14px; }
+header .acoes { margin-left: auto; display: flex; gap: 8px; }
+button { font: inherit; cursor: pointer; border-radius: 10px; border: 1px solid var(--borda); background: var(--card);
+         color: var(--texto); padding: 8px 14px; }
+button:hover { border-color: var(--anil-medio); }
+button.prim { background: var(--degrade); color: #fff; border: 0; font-weight: 600; }
+button.prim:hover { filter: brightness(1.08); }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--mudo); margin: 28px 0 12px; }
+
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+.app { background: var(--card); border: 1px solid var(--borda); border-radius: var(--raio); padding: 18px;
+       box-shadow: var(--sombra); display: flex; flex-direction: column; gap: 10px; transition: transform .12s; }
+.app:hover { transform: translateY(-2px); }
+.app .topo { display: flex; align-items: center; gap: 12px; }
+.app img { width: 56px; height: 56px; }
+.app h3 { margin: 0; font-size: 17px; }
+.app small { color: var(--mudo); }
+.app p { margin: 0; color: var(--texto-2); font-size: 13.5px; flex: 1; }
+.app .rodape { display: flex; align-items: center; justify-content: space-between; }
+.status { font-size: 12.5px; color: var(--mudo); display: flex; align-items: center; gap: 6px; }
+.status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--mudo); opacity: .5; }
+.status.aberto { color: var(--ok); } .status.aberto::before { background: var(--ok); opacity: 1; }
+
+.busca { display: flex; gap: 8px; }
+.busca input { flex: 1; }
+input, select, textarea { font: inherit; color: var(--texto); background: var(--card); border: 1px solid var(--borda);
+  border-radius: 10px; padding: 9px 12px; width: 100%; }
+input:focus, select:focus, textarea:focus { outline: 2px solid color-mix(in srgb, var(--anil-medio) 45%, transparent); border-color: var(--anil-medio); }
+.resultados { margin-top: 10px; background: var(--card); border: 1px solid var(--borda); border-radius: 12px; overflow: hidden; }
+.resultados:empty { display: none; }
+.res { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--borda); }
+.res:first-child { border-top: 0; }
+.res .nome { font-weight: 600; } .res .pasta { color: var(--mudo); font-size: 12.5px; word-break: break-all; }
+.res .info { flex: 1; min-width: 0; }
+.res img { width: 30px; height: 30px; }
+.vazio { padding: 14px; color: var(--mudo); }
+
+aside { background: var(--card); border-left: 1px solid var(--borda); display: flex; flex-direction: column; min-height: 0; }
+.chat-topo { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--borda); }
+.chat-topo img { width: 40px; height: 40px; }
+.chat-topo b { display: block; } .chat-topo span { font-size: 12.5px; color: var(--mudo); }
+#mensagens { flex: 1; overflow: auto; padding: 18px 18px 8px; display: flex; flex-direction: column; gap: 12px; }
+.msg { max-width: 92%; padding: 10px 14px; border-radius: 14px; white-space: pre-wrap; word-wrap: break-word; }
+.msg.user { align-self: flex-end; background: var(--degrade); color: #fff; border-bottom-right-radius: 4px; }
+.msg.assistant { align-self: flex-start; background: var(--suave); border-bottom-left-radius: 4px; }
+.msg.erro { background: color-mix(in srgb, var(--erro) 12%, var(--card)); color: var(--erro); }
+.acoes-ia { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.acao { font-size: 11.5px; padding: 2px 8px; border-radius: 99px; background: var(--card); border: 1px solid var(--borda); color: var(--texto-2); }
+.acao.falhou { color: var(--erro); }
+.sugestoes { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 18px 10px; }
+.sugestoes button { font-size: 12.5px; padding: 5px 10px; border-radius: 99px; }
+.digitando { align-self: flex-start; color: var(--mudo); font-size: 13px; padding: 4px 6px; }
+form.enviar { display: flex; gap: 8px; padding: 12px 16px 16px; border-top: 1px solid var(--borda); }
+form.enviar textarea { resize: none; height: 46px; }
+
+dialog { border: 0; border-radius: 18px; padding: 0; width: min(560px, 92vw); background: var(--card); color: var(--texto); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+dialog::backdrop { background: rgba(10,14,30,.45); }
+.dlg { padding: 24px 26px; display: flex; flex-direction: column; gap: 14px; }
+.dlg h3 { margin: 0; }
+.dlg label { font-size: 13px; font-weight: 600; display: flex; flex-direction: column; gap: 6px; }
+.dlg .linha { display: flex; gap: 8px; align-items: center; }
+.dlg .nota { font-size: 12.5px; color: var(--texto-2); background: var(--suave); padding: 10px 12px; border-radius: 10px; }
+.dlg .fim { display: flex; justify-content: flex-end; gap: 8px; }
+.credito { margin-top: 36px; font-size: 12px; color: var(--mudo); }
+@media (max-width: 900px) { body { grid-template-columns: 1fr; height: auto; overflow: auto; } aside { height: 80vh; } main { padding: 20px 16px; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="/web/img/logo-grupo-angero.png" alt="Grupo Angerô">
+    <div>
+      <h1>Suíte Angerô</h1>
+      <p>Programas de criação do Grupo Angerô — gratuitos e com assistente de IA</p>
+    </div>
+    <div class="acoes"><button id="btnConfig" title="Configurações">⚙ Configurações</button></div>
+  </header>
+
+  <h2>Programas</h2>
+  <div class="grade" id="grade"></div>
+
+  <h2>Plugins</h2>
+  <div class="grade">
+    <div class="app">
+      <div class="topo"><img src="/icones/fluxogama-128.png" alt=""><div><h3>Fluxogama - Angerô</h3></div></div>
+      <p>Galeria de modelos do Fluxogama: abrir arte no Illustre e enviar as pranchetas para o portal. No Illustre, abra pelo botão 🧩 Extensões, no alto da janela.</p>
+      <div class="rodape"><span class="status">plugin do Illustre</span><button class="prim" id="btnFxg">Abrir</button></div>
+    </div>
+  </div>
+
+  <h2>Abrir arquivo</h2>
+  <form class="busca" id="formBusca">
+    <input id="termo" placeholder="Digite parte do nome do arquivo (ex.: mix pijamas)" autocomplete="off">
+    <button class="prim">Procurar</button>
+    <button type="button" id="btnEscolher" title="Abre a janela do Windows para escolher o arquivo">📂 Escolher arquivo…</button>
+  </form>
+  <div class="resultados" id="resultados"></div>
+
+  <h2>Atualizações</h2>
+  <div class="resultados" id="atualizacoes"></div>
+  <div style="margin-top:8px;display:flex;gap:10px;align-items:center">
+    <button id="btnAtualizar">↻ Procurar atualizações agora</button>
+    <small id="atualInfo" style="color:var(--mudo)"></small>
+  </div>
+
+  <div class="credito">Feito por: Weslei Domingues - 2026 · Grupo Angerô · <a href="https://github.com/wesleiad/Suite-Angero" target="_blank" style="color:inherit">Ajuda e código-fonte</a></div>
+</main>
+
+<aside>
+  <div class="chat-topo">
+    <img src="/icones/assistente-64.png" alt="">
+    <div><b>Assistente Angerô</b><span id="provedorInfo">IA: Google Gemini</span></div>
+  </div>
+  <div id="mensagens">
+    <div class="msg assistant">Olá! Sou o Assistente Angerô. Posso abrir programas, achar e abrir arquivos e ajudar nas ferramentas. O que você precisa?</div>
+  </div>
+  <div class="sugestoes" id="sugestoes">
+    <button>Abra o Illustre</button>
+    <button>Procure o arquivo Mix Pijamas</button>
+    <button>Como faço contorno tracejado?</button>
+  </div>
+  <form class="enviar" id="formChat">
+    <textarea id="pergunta" placeholder="Escreva aqui… (Enter envia)"></textarea>
+    <button class="prim">Enviar</button>
+  </form>
+</aside>
+
+<dialog id="dlgConfig">
+  <form class="dlg" method="dialog" id="formConfig">
+    <h3>⚙ Configurações do assistente</h3>
+    <input type="hidden" name="provedor" value="gemini">
+    <label>Chave do Google Gemini (grátis — crie em aistudio.google.com › Get API key)
+      <span class="linha"><input name="gemini" placeholder="AIza…" autocomplete="off"><button type="button" data-testar="gemini">Testar</button></span></label>
+    <label class="linha" style="flex-direction:row;font-weight:400"><input type="checkbox" name="fxgJunto" style="width:auto"> Abrir o painel do Fluxogama junto com o Illustre</label>
+    <label>Pastas extras para procurar arquivos (uma por linha)
+      <textarea name="pastas" rows="3" placeholder="P:\&#10;\\servidor\pasta"></textarea>
+    </label>
+    <div class="nota" id="testeInfo">A chave fica só neste computador, na pasta do seu usuário.<br>
+      ⚠ No plano grátis o Google pode usar o que é enviado ao assistente para melhorar os produtos dele — não envie informações sigilosas de coleção pelo chat. (Os arquivos em si não são enviados.)</div>
+    <div class="fim"><button value="cancelar">Cancelar</button><button class="prim" id="salvarConfig" value="ok">Salvar</button></div>
+  </form>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const ICONE = { vetor: "vetor", foto: "foto", pdf: "pdf", video: "video", galeria: "galeria" };
+let programas = [];
+let historico = [];
+
+async function api(caminho, dados) {
+  const op = dados === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json", "X-Suite": "1" }, body: JSON.stringify(dados) };
+  const r = await fetch(caminho, op);
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.erro || r.statusText);
+  return j;
+}
+
+function el(tag, attrs = {}, ...filhos) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) k === "class" ? e.className = v : k.startsWith("on") ? e.addEventListener(k.slice(2), v) : e.setAttribute(k, v);
+  for (const f of filhos) e.append(f);
+  return e;
+}
+
+async function carregarProgramas() {
+  programas = await api("/api/programas");
+  const g = $("#grade"); g.replaceChildren();
+  for (const p of programas) {
+    g.append(el("div", { class: "app" },
+      el("div", { class: "topo" }, el("img", { src: `/icones/${ICONE[p.id]}-128.png`, alt: "" }),
+        el("div", {}, el("h3", {}, p.nome))),
+      el("p", {}, p.descricao),
+      el("div", { class: "rodape" },
+        el("span", { class: "status" + (p.aberto ? " aberto" : "") }, !p.instalado ? "não instalado" : p.aberto ? "aberto" : "fechado"),
+        el("button", { class: "prim", onclick: () => abrir(p.id) }, p.aberto ? "Aberto ✓" : "Abrir"))));
+  }
+}
+
+async function abrir(id, arquivo) {
+  try { const r = await api("/api/abrir", { programa: id, arquivo }); avisar(r.mensagem); }
+  catch (e) { avisar("Não consegui abrir: " + e.message, true); }
+  setTimeout(carregarProgramas, 4000);
+}
+
+function avisar(texto, erro) {
+  $("#mensagens").append(el("div", { class: "msg assistant" + (erro ? " erro" : "") }, texto));
+  $("#mensagens").scrollTop = 1e9;
+}
+
+function programaDe(caminho) {
+  const ext = "." + caminho.split(".").pop().toLowerCase();
+  return programas.find(p => p.extensoes.includes(ext));
+}
+
+$("#formBusca").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const termo = $("#termo").value.trim(); if (!termo) return;
+  const box = $("#resultados"); box.replaceChildren(el("div", { class: "vazio" }, "Procurando…"));
+  const r = await api("/api/arquivos?termo=" + encodeURIComponent(termo));
+  box.replaceChildren();
+  if (!r.resultados.length) box.append(el("div", { class: "vazio" }, "Nada encontrado em: " + r.pastas_pesquisadas.join(", ")));
+  for (const a of r.resultados) {
+    const p = programaDe(a.caminho);
+    const partes = a.caminho.split("\\");
+    box.append(el("div", { class: "res" },
+      el("img", { src: p ? `/icones/${ICONE[p.id]}-64.png` : "/icones/suite-64.png", alt: "" }),
+      el("div", { class: "info" }, el("div", { class: "nome" }, partes.pop()), el("div", { class: "pasta" }, partes.join("\\") + " · " + a.modificado)),
+      el("button", { onclick: () => api("/api/mostrar", { caminho: a.caminho }).catch(e => avisar(e.message, true)), title: "Abrir a pasta no Explorador de Arquivos" }, "📁 Mostrar na pasta"),
+      p ? el("button", { class: "prim", onclick: () => abrir(p.id, a.caminho) }, "Abrir no " + p.nome.replace(" - Angerô", "")) : el("small", {}, "sem programa")));
+  }
+});
+
+$("#btnFxg").addEventListener("click", () => api("/api/fluxogama", {}).catch(e => avisar(e.message, true)));
+$("#btnEscolher").addEventListener("click", async () => {
+  const b = $("#btnEscolher"); b.disabled = true; b.textContent = "Escolha na janela que abriu…";
+  try {
+    const r = await api("/api/escolher", {});
+    if (r.mensagem) avisar(r.mensagem);
+    if (r.caminho) setTimeout(carregarProgramas, 4000);
+  } catch (e) { avisar("Não consegui abrir: " + e.message, true); }
+  b.disabled = false; b.textContent = "📂 Escolher arquivo…";
+});
+
+async function enviar(texto) {
+  texto = texto.trim(); if (!texto) return;
+  $("#sugestoes").style.display = "none";
+  $("#mensagens").append(el("div", { class: "msg user" }, texto));
+  historico.push({ role: "user", content: texto });
+  const dig = el("div", { class: "digitando" }, "Assistente está pensando…");
+  $("#mensagens").append(dig); $("#mensagens").scrollTop = 1e9;
+  $("#pergunta").value = "";
+  try {
+    const r = await api("/api/chat", { historico });
+    dig.remove();
+    const m = el("div", { class: "msg assistant" }, r.resposta);
+    if (r.acoes.length) m.append(el("div", { class: "acoes-ia" }, ...r.acoes.map(a => el("span", { class: "acao" + (a.ok ? "" : " falhou"), title: a.resumo }, (a.ok ? "✓ " : "✕ ") + a.ferramenta.replaceAll("_", " ")))));
+    $("#mensagens").append(m);
+    historico.push({ role: "assistant", content: r.resposta });
+    $("#provedorInfo").textContent = "IA: " + (r.provedor === "gemini" ? "Google Gemini" : "Groq");
+    if (r.acoes.some(a => a.ferramenta.startsWith("abrir"))) setTimeout(carregarProgramas, 4000);
+  } catch (e) {
+    dig.remove(); avisar("Erro: " + e.message, true);
+  }
+  $("#mensagens").scrollTop = 1e9;
+}
+$("#formChat").addEventListener("submit", ev => { ev.preventDefault(); enviar($("#pergunta").value); });
+$("#pergunta").addEventListener("keydown", ev => { if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); enviar($("#pergunta").value); } });
+document.querySelectorAll("#sugestoes button").forEach(b => b.addEventListener("click", () => enviar(b.textContent)));
+
+// ---- configurações
+async function abrirConfig() {
+  const { config } = await api("/api/config");
+  const f = $("#formConfig");
+  f.gemini.value = config.chaves.gemini;
+  f.fxgJunto.checked = !!config.fluxogama_junto_illustre;
+  f.pastas.value = (config.pastas_extras || []).join("\n");
+  $("#dlgConfig").showModal();
+}
+function dadosConfig() {
+  const f = $("#formConfig");
+  return { provedor: "gemini", reserva: false, fluxogama_junto_illustre: f.fxgJunto.checked,
+           chaves: { gemini: f.gemini.value },
+           pastas_extras: f.pastas.value.split("\n").map(s => s.trim()).filter(Boolean) };
+}
+$("#btnConfig").addEventListener("click", abrirConfig);
+$("#salvarConfig").addEventListener("click", async ev => {
+  ev.preventDefault(); await api("/api/config", dadosConfig()); $("#dlgConfig").close(); avisar("Configurações salvas ✓");
+});
+document.querySelectorAll("[data-testar]").forEach(b => b.addEventListener("click", async () => {
+  await api("/api/config", dadosConfig());
+  const r = await api("/api/testar", { provedor: b.dataset.testar });
+  $("#testeInfo").textContent = r.ok
+    ? `✓ Chave funcionando. Modelo ${r.modelo_atual} ${r.modelo_existe ? "pronto para usar" : "NÃO encontrado — avise o TI"}.`
+    : "✕ Não funcionou: " + r.erro;
+}));
+
+async function carregarAtualizacoes() {
+  const e = await api("/api/atualizacoes");
+  const box = $("#atualizacoes"); box.replaceChildren();
+  const itens = Object.values(e.itens || {});
+  if (!itens.length) box.append(el("div", { class: "vazio" }, e.verificando ? "Procurando atualizações…" : "Ainda não verificado."));
+  for (const i of itens) box.append(el("div", { class: "res" },
+    el("div", { class: "info" }, el("div", { class: "nome" }, i.nome), el("div", { class: "pasta" }, (i.instalada ? "versão " + i.instalada + " · " : "") + i.situacao))));
+  $("#atualInfo").textContent = e.verificando ? "verificando…" : (e.ultima_verificacao ? "Última verificação: " + e.ultima_verificacao : "");
+}
+$("#btnAtualizar").addEventListener("click", async () => { await api("/api/atualizar", {}); setTimeout(carregarAtualizacoes, 1500); });
+
+carregarProgramas();
+carregarAtualizacoes();
+setInterval(carregarProgramas, 15000);
+setInterval(carregarAtualizacoes, 20000);
+</script>
+</body>
+</html>

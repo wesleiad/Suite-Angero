@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Suíte Angerô: associações padrão para a GPO (Configuração do Computador > Modelos Administrativos >
+     Componentes do Windows > Explorador de Arquivos > Definir um arquivo de configuração de associações padrão).
+     Os ProgIds são registrados pelos instaladores da Suíte. Gerado por instalador/gerar_associacoes.py. -->
+<DefaultAssociations>
+  <Association Identifier=".ai" ProgId="SuiteAngero.illustre.ai" ApplicationName="Illustre - Angerô" />
+  <Association Identifier=".ait" ProgId="SuiteAngero.illustre.ait" ApplicationName="Illustre - Angerô" />
+  <Association Identifier=".eps" ProgId="SuiteAngero.illustre.eps" ApplicationName="Illustre - Angerô" />
+  <Association Identifier=".svg" ProgId="SuiteAngero.illustre.svg" ApplicationName="Illustre - Angerô" />
+  <Association Identifier=".svgz" ProgId="SuiteAngero.illustre.svgz" ApplicationName="Illustre - Angerô" />
+  <Association Identifier=".vectorcraft" ProgId="SuiteAngero.illustre.vectorcraft" ApplicationName="Illustre - Angerô" />
+  <Association Identifier=".psd" ProgId="SuiteAngero.fotografe.psd" ApplicationName="Fotografe - Angerô" />
+  <Association Identifier=".psb" ProgId="SuiteAngero.fotografe.psb" ApplicationName="Fotografe - Angerô" />
+  <Association Identifier=".pcraft" ProgId="SuiteAngero.fotografe.pcraft" ApplicationName="Fotografe - Angerô" />
+  <Association Identifier=".pdf" ProgId="SuiteAngero.pdf.pdf" ApplicationName="PDF - Angerô" />
+  <Association Identifier=".fcproj" ProgId="SuiteAngero.cena.fcproj" ApplicationName="Cena - Angerô" />
+  <Association Identifier=".cr2" ProgId="SuiteAngero.lightbridge.cr2" ApplicationName="LightBridge - Angerô" />
+  <Association Identifier=".cr3" ProgId="SuiteAngero.lightbridge.cr3" ApplicationName="LightBridge - Angerô" />
+  <Association Identifier=".nef" ProgId="SuiteAngero.lightbridge.nef" ApplicationName="LightBridge - Angerô" />
+  <Association Identifier=".arw" ProgId="SuiteAngero.lightbridge.arw" ApplicationName="LightBridge - Angerô" />
+  <Association Identifier=".dng" ProgId="SuiteAngero.lightbridge.dng" ApplicationName="LightBridge - Angerô" />
+  <Association Identifier=".raf" ProgId="SuiteAngero.lightbridge.raf" ApplicationName="LightBridge - Angerô" />
+  <Association Identifier=".orf" ProgId="SuiteAngero.lightbridge.orf" ApplicationName="LightBridge - Angerô" />
+  <Association Identifier=".rw2" ProgId="SuiteAngero.lightbridge.rw2" ApplicationName="LightBridge - Angerô" />
+</DefaultAssociations>

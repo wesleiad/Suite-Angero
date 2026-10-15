@@ -1,0 +1,76 @@
+# Publica uma versão nova da Suíte Angerô a cada push no main:
+#   suite-angero.zip + versao.txt  (atualização automática das Suítes instaladas)
+#   Instalar Suíte Angerô.exe      (instalador completo, com os programas da última versão de cada um)
+name: Versão da Suíte
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: versao-suite
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        id: py
+        with:
+          python-version: "3.12.10"
+
+      - name: Versão
+        id: v
+        shell: pwsh
+        run: '"versao=1.0.0.${{ github.run_number }}" >> $env:GITHUB_OUTPUT'
+
+      - name: Pacote de atualização
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist/pacote | Out-Null
+          Copy-Item suite, icones, docs -Destination dist/pacote -Recurse
+          Copy-Item LICENSE, README.md dist/pacote
+          Get-ChildItem dist/pacote -Recurse -Directory -Filter __pycache__ | Remove-Item -Recurse -Force
+          Compress-Archive -Path dist/pacote/* -DestinationPath dist/suite-angero.zip -Force
+          Set-Content dist/versao.txt "${{ steps.v.outputs.versao }}" -NoNewline -Encoding ascii
+
+      - name: Python portátil
+        shell: pwsh
+        run: ./instalador/preparar_python.ps1 -Instalado (Split-Path "${{ steps.py.outputs.python-path }}") -Destino "$PWD\dist\python"
+
+      - name: Programas (última versão de cada um)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $mapa = @{ illustre = 'illustre'; fotografe = 'fotografe'; pdf = 'pdf-angero'; cena = 'cena'; lightbridge = 'lightbridge' }
+          foreach ($id in $mapa.Keys) {
+            $zip = "$($mapa[$id])-windows-x64.zip"
+            gh release download --repo "wesleiad/$id-angero" --pattern $zip --dir dist/zips --clobber
+            if ($LASTEXITCODE -ne 0) { throw "sem versão publicada de $id-angero" }
+            Expand-Archive "dist/zips/$zip" -DestinationPath "dist/programas/$id" -Force
+          }
+
+      - name: Instalador completo
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Null }
+          & $iscc "/DVersao=${{ steps.v.outputs.versao }}" "/DArqVersao=$PWD\dist\versao.txt" "/DRaiz=$PWD" `
+            "/DPython=$PWD\dist\python" "/DProgramas=$PWD\dist\programas" "/DSaida=$PWD\dist" instalador\suite.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC falhou" }
+
+      - name: Publicar
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $v = "${{ steps.v.outputs.versao }}"
+          gh release create "v$v" dist/suite-angero.zip dist/versao.txt (Get-ChildItem dist/*.exe).FullName `
+            --title "Suíte Angerô $v" --notes "Versão publicada automaticamente a partir do commit ${{ github.sha }}." --latest

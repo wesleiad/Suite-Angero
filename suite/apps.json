@@ -1,0 +1,167 @@
+{
+  "_comentario": "Programas da Suíte Angerô. 'pacote' = id do instalador/repositório (registro HKCU\\Software\\Grupo Angero\\Suite Angero\\Programas\\<pacote>); {DADOS} = %LOCALAPPDATA%\\SuiteAngero. 'abrir_mcp' = ferramenta usada para abrir arquivo com o programa já aberto.",
+  "programas": [
+    {
+      "id": "vetor",
+      "nome": "Illustre - Angerô",
+      "descricao": "Desenho vetorial, fichas técnicas e estampas.",
+      "exe": "illustre.exe",
+      "cli": "illustre-cli.exe",
+      "controle": [
+        "--control",
+        "7979"
+      ],
+      "porta": 7979,
+      "mcp": [
+        "mcp",
+        "--connect",
+        "127.0.0.1:7979"
+      ],
+      "abrir_mcp": {
+        "ferramenta": "open_file",
+        "campo": "path",
+        "lista": false
+      },
+      "extensoes": [
+        ".ai",
+        ".ait",
+        ".svg",
+        ".svgz",
+        ".eps",
+        ".vectorcraft",
+        ".dxf",
+        ".emf",
+        ".wmf"
+      ],
+      "pacote": "illustre",
+      "repo": "illustre-angero"
+    },
+    {
+      "id": "foto",
+      "nome": "Fotografe - Angerô",
+      "descricao": "Edição de imagens e montagens com camadas, abre PSD.",
+      "exe": "fotografe.exe",
+      "cli": "fotografe-cli.exe",
+      "controle": [
+        "--control",
+        "7981",
+        "--control-token-file",
+        "{DADOS}/fotografe.token"
+      ],
+      "porta": 7981,
+      "mcp": [
+        "mcp",
+        "--bridge",
+        "127.0.0.1:7981",
+        "--control-token-file",
+        "{DADOS}/fotografe.token"
+      ],
+      "abrir_mcp": {
+        "ferramenta": "doc_open",
+        "campo": "path",
+        "lista": false
+      },
+      "extensoes": [
+        ".psd",
+        ".psb",
+        ".pcraft",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".tif",
+        ".tiff",
+        ".webp",
+        ".bmp",
+        ".gif",
+        ".tga"
+      ],
+      "pacote": "fotografe",
+      "repo": "fotografe-angero"
+    },
+    {
+      "id": "pdf",
+      "nome": "PDF - Angerô",
+      "descricao": "Ler, organizar, juntar, assinar e proteger PDFs.",
+      "exe": "pdf-angero.exe",
+      "cli": "pdf-angero-cli.exe",
+      "controle": [],
+      "porta": null,
+      "mcp": null,
+      "abrir_mcp": null,
+      "extensoes": [
+        ".pdf"
+      ],
+      "pacote": "pdf",
+      "repo": "pdf-angero"
+    },
+    {
+      "id": "video",
+      "nome": "Cena - Angerô",
+      "descricao": "Edição de vídeo com linha do tempo, cortes, legendas e áudio.",
+      "exe": "cena.exe",
+      "cli": "cena-cli.exe",
+      "controle": [
+        "--control",
+        "7982"
+      ],
+      "porta": 7982,
+      "mcp": [
+        "mcp",
+        "--bridge",
+        "127.0.0.1:7982"
+      ],
+      "abrir_mcp": {
+        "ferramenta": "media_import",
+        "campo": "paths",
+        "lista": true
+      },
+      "extensoes": [
+        ".mp4",
+        ".mov",
+        ".mkv",
+        ".avi",
+        ".wav",
+        ".mp3",
+        ".flac",
+        ".aiff",
+        ".ogg"
+      ],
+      "pacote": "cena",
+      "repo": "cena-angero"
+    },
+    {
+      "id": "galeria",
+      "nome": "LightBridge - Angerô",
+      "descricao": "Catálogo de fotos: organizar, etiquetar, revelar e exportar em lote.",
+      "exe": "lightbridge.exe",
+      "cli": "lightbridge-cli.exe",
+      "controle": [
+        "--control",
+        "7980"
+      ],
+      "porta": 7980,
+      "mcp": [
+        "mcp",
+        "--connect",
+        "127.0.0.1:7980"
+      ],
+      "abrir_mcp": {
+        "ferramenta": "import",
+        "campo": "paths",
+        "lista": true
+      },
+      "extensoes": [
+        ".cr2",
+        ".cr3",
+        ".nef",
+        ".arw",
+        ".dng",
+        ".raf",
+        ".orf",
+        ".rw2"
+      ],
+      "pacote": "lightbridge",
+      "repo": "lightbridge-angero"
+    }
+  ]
+}
