@@ -27,7 +27,7 @@ PROVEDORES = {
         "nome": "Google Gemini",
         "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
         "modelos_url": "https://generativelanguage.googleapis.com/v1beta/openai/models",
-        "modelo": "gemini-2.5-flash",
+        "modelo": "gemini-3.1-flash-lite",  # rápido (~1 s) e com cota grátis maior
     },
 }
 
@@ -40,7 +40,6 @@ PADRAO = {
     "fluxogama_junto_illustre": False,  # abrir o painel do Fluxogama ao lado do Illustre
 }
 
-MODELO_RESERVA_GEMINI = "gemini-3.1-flash-lite"  # usado quando o principal está sobrecarregado
 SSL = ssl.create_default_context()  # usa os certificados do Windows (inclui o de proxies corporativos)
 
 
@@ -287,6 +286,33 @@ class LimiteAtingido(Exception):
     pass
 
 
+class Sobrecarga(Exception):
+    pass
+
+
+MODELOS_GEMINI = ["gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-3-flash-preview"]
+
+
+def _chamar_com_reserva(provedor: str, cfg: dict, mensagens: list) -> dict:
+    """Picos de demanda no Google são comuns: tenta o modelo configurado e os reservas, com pausas curtas."""
+    modelos = [cfg["modelos"].get(provedor) or PROVEDORES[provedor]["modelo"]]
+    if provedor == "gemini":
+        modelos += [m for m in MODELOS_GEMINI if m not in modelos]
+    ultimo = None
+    for rodada, pausa in enumerate((0, 2, 5)):
+        time.sleep(pausa)
+        for m in modelos:
+            try:
+                return _chamar_ia(provedor, dict(cfg, modelos=dict(cfg["modelos"], **{provedor: m})), mensagens)
+            except (Sobrecarga, TimeoutError) as e:
+                ultimo = e
+            except urllib.error.URLError as e:
+                if not isinstance(getattr(e, "reason", None), TimeoutError):
+                    raise
+                ultimo = e
+    raise Sobrecarga("a IA do Google está sobrecarregada agora") from ultimo
+
+
 def _chamar_ia(provedor: str, cfg: dict, mensagens: list) -> dict:
     p = PROVEDORES[provedor]
     chave = cfg["chaves"].get(provedor)
@@ -298,7 +324,7 @@ def _chamar_ia(provedor: str, cfg: dict, mensagens: list) -> dict:
                                  headers={"Authorization": f"Bearer {chave}", "Content-Type": "application/json",
                                           "User-Agent": "SuiteAngero/1.0"})
     try:
-        with urllib.request.urlopen(req, timeout=180, context=SSL) as r:
+        with urllib.request.urlopen(req, timeout=60, context=SSL) as r:
             return json.loads(r.read())["choices"][0]["message"]
     except urllib.error.HTTPError as e:
         detalhe = e.read().decode("utf-8", "replace")[:400]
@@ -309,13 +335,8 @@ def _chamar_ia(provedor: str, cfg: dict, mensagens: list) -> dict:
             cfg["modelos"][provedor] = sugerido.group(1)
             cfg["_trocou"] = True
             return _chamar_ia(provedor, cfg, mensagens)
-        if e.code in (500, 503) and cfg.get("_tentativas", 0) < 2:
-            # Google sobrecarregado: espera um pouco e tenta de novo; na 2ª vez usa o modelo reserva
-            cfg["_tentativas"] = cfg.get("_tentativas", 0) + 1
-            time.sleep(2)
-            if cfg["_tentativas"] == 2 and provedor == "gemini":
-                cfg = dict(cfg, modelos=dict(cfg["modelos"], gemini=MODELO_RESERVA_GEMINI))
-            return _chamar_ia(provedor, cfg, mensagens)
+        if e.code in (500, 502, 503, 504):
+            raise Sobrecarga(f"{p['nome']} sobrecarregado") from e
         if e.code == 429:
             raise LimiteAtingido(f"{p['nome']}: limite gratuito atingido") from e
         if e.code in (401, 403) or "API key" in detalhe:
@@ -342,13 +363,16 @@ def conversar(historico: list[dict]) -> dict:
         resposta = None
         for prov in list(ordem):
             try:
-                resposta = _chamar_ia(prov, cfg, msgs)
+                resposta = _chamar_com_reserva(prov, cfg, msgs)
                 provedor = prov
                 break
             except LimiteAtingido as e:
                 ultimo_erro = str(e)
                 ordem.remove(prov)
                 continue
+            except Sobrecarga:
+                return {"resposta": "⏳ A IA do Google está sobrecarregada neste momento. Tente de novo em alguns segundos.",
+                        "acoes": acoes, "provedor": provedor}
         if resposta is None:
             return {"resposta": f"⏳ {ultimo_erro}. Espere um minuto e tente de novo.", "acoes": acoes,
                     "provedor": provedor}
