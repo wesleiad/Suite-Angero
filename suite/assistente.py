@@ -46,6 +46,35 @@ SSL = ssl.create_default_context()  # usa os certificados do Windows (inclui o d
 
 # ---------------------------------------------------------------- configuração
 
+REG_CENTRAL = r"Software\Grupo Angero\Suite Angero\Assistente"
+ARQ_CENTRAL = Path(os.environ.get("ProgramData", r"C:\ProgramData")) / "SuiteAngero" / "assistente.json"
+
+
+def config_central() -> dict:
+    r"""Chave e modelo definidos pelo TI para o computador (o usuário não altera):
+    1) registro HKLM\Software\Grupo Angero\Suite Angero\Assistente (GeminiChave, GeminiModelo) — dá para mandar por GPO;
+    2) %ProgramData%\SuiteAngero\assistente.json  {"gemini_chave": "...", "gemini_modelo": "..."}."""
+    try:
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, REG_CENTRAL) as k:
+            chave = winreg.QueryValueEx(k, "GeminiChave")[0]
+            try:
+                modelo = winreg.QueryValueEx(k, "GeminiModelo")[0]
+            except OSError:
+                modelo = ""
+            if chave:
+                return {"chave": chave.strip(), "modelo": (modelo or "").strip(), "origem": "registro do computador"}
+    except OSError:
+        pass
+    try:
+        dados = json.loads(ARQ_CENTRAL.read_text(encoding="utf-8-sig"))
+        if dados.get("gemini_chave"):
+            return {"chave": dados["gemini_chave"].strip(), "modelo": (dados.get("gemini_modelo") or "").strip(),
+                    "origem": "arquivo do computador"}
+    except (OSError, ValueError):
+        pass
+    return {}
+
+
 def ler_config() -> dict:
     cfg = json.loads(json.dumps(PADRAO))
     try:
@@ -57,30 +86,42 @@ def ler_config() -> dict:
                 cfg[k] = v
     except (OSError, ValueError):
         pass
+    central = config_central()
+    if central:
+        cfg["chaves"]["gemini"] = central["chave"]
+        if central["modelo"]:
+            cfg["modelos"]["gemini"] = central["modelo"]
+    cfg["provedor"] = "gemini"
     return cfg
 
 
 def salvar_config(novo: dict) -> dict:
-    cfg = ler_config()
-    for k in ("provedor", "reserva", "pastas_extras", "fluxogama_junto_illustre"):
+    """Só o que o usuário pode mudar pela tela (a chave da IA é do TI: config_central)."""
+    try:
+        cfg = json.loads(ARQ_CONFIG.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        cfg = {}
+    for k in ("pastas_extras", "fluxogama_junto_illustre"):
         if k in novo:
             cfg[k] = novo[k]
-    for k in ("chaves", "modelos"):
-        for prov, valor in (novo.get(k) or {}).items():
-            if prov in PROVEDORES and valor is not None and not str(valor).startswith("••"):
-                cfg[k][prov] = str(valor).strip()
+    for prov, valor in (novo.get("modelos") or {}).items():  # troca automática de modelo aposentado
+        if prov in PROVEDORES and valor:
+            cfg.setdefault("modelos", {})[prov] = str(valor).strip()
     PASTA_CONFIG.mkdir(parents=True, exist_ok=True)
     tmp = ARQ_CONFIG.with_suffix(".tmp")
     tmp.write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")
     os.replace(tmp, ARQ_CONFIG)
-    return cfg
+    return ler_config()
 
 
 def config_publica() -> dict:
-    """Config para a tela, sem expor as chaves."""
+    """Config para a tela: nada de chave."""
     cfg = ler_config()
-    cfg["chaves"] = {p: ("••••" + c[-4:] if c else "") for p, c in cfg["chaves"].items()}
-    return cfg
+    central = config_central()
+    return {"assistente_configurado": bool(cfg["chaves"].get("gemini")),
+            "origem": central.get("origem", "usuário" if cfg["chaves"].get("gemini") else ""),
+            "pastas_extras": cfg.get("pastas_extras", []),
+            "fluxogama_junto_illustre": bool(cfg.get("fluxogama_junto_illustre"))}
 
 
 # ---------------------------------------------------------------- busca de arquivos
@@ -250,7 +291,7 @@ def _chamar_ia(provedor: str, cfg: dict, mensagens: list) -> dict:
     p = PROVEDORES[provedor]
     chave = cfg["chaves"].get(provedor)
     if not chave:
-        raise RuntimeError(f"sem chave do {p['nome']} — configure em ⚙ Configurações")
+        raise RuntimeError("o assistente ainda não foi configurado neste computador — fale com o TI")
     corpo = {"model": cfg["modelos"].get(provedor) or p["modelo"], "messages": mensagens,
              "tools": FERRAMENTAS, "tool_choice": "auto", "temperature": 0.3}
     req = urllib.request.Request(p["url"], data=json.dumps(corpo).encode("utf-8"), method="POST",
@@ -278,7 +319,7 @@ def _chamar_ia(provedor: str, cfg: dict, mensagens: list) -> dict:
         if e.code == 429:
             raise LimiteAtingido(f"{p['nome']}: limite gratuito atingido") from e
         if e.code in (401, 403) or "API key" in detalhe:
-            raise RuntimeError(f"{p['nome']} recusou a chave (verifique em ⚙ Configurações)") from e
+            raise RuntimeError("a chave do assistente foi recusada — fale com o TI") from e
         raise RuntimeError(f"{p['nome']} respondeu erro {e.code}: {detalhe}") from e
     except urllib.error.URLError as e:
         raise RuntimeError(f"sem conexão com o {p['nome']}: {e.reason}") from e

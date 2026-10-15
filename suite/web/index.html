@@ -158,16 +158,13 @@ dialog::backdrop { background: rgba(10,14,30,.45); }
 
 <dialog id="dlgConfig">
   <form class="dlg" method="dialog" id="formConfig">
-    <h3>⚙ Configurações do assistente</h3>
-    <input type="hidden" name="provedor" value="gemini">
-    <label>Chave do Google Gemini (grátis — crie em aistudio.google.com › Get API key)
-      <span class="linha"><input name="gemini" placeholder="AIza…" autocomplete="off"><button type="button" data-testar="gemini">Testar</button></span></label>
+    <h3>⚙ Configurações</h3>
+    <div class="nota" id="iaInfo">Assistente: verificando…</div>
     <label class="linha" style="flex-direction:row;font-weight:400"><input type="checkbox" name="fxgJunto" style="width:auto"> Abrir o painel do Fluxogama junto com o Illustre</label>
     <label>Pastas extras para procurar arquivos (uma por linha)
       <textarea name="pastas" rows="3" placeholder="P:\&#10;\\servidor\pasta"></textarea>
     </label>
-    <div class="nota" id="testeInfo">A chave fica só neste computador, na pasta do seu usuário.<br>
-      ⚠ No plano grátis o Google pode usar o que é enviado ao assistente para melhorar os produtos dele — não envie informações sigilosas de coleção pelo chat. (Os arquivos em si não são enviados.)</div>
+    <div class="nota">⚠ No plano grátis o Google pode usar o que é enviado ao assistente para melhorar os produtos dele — não envie informações sigilosas de coleção pelo chat. (Os arquivos em si não são enviados.)</div>
     <div class="fim"><button value="cancelar">Cancelar</button><button class="prim" id="salvarConfig" value="ok">Salvar</button></div>
   </form>
 </dialog>
@@ -282,28 +279,22 @@ document.querySelectorAll("#sugestoes button").forEach(b => b.addEventListener("
 async function abrirConfig() {
   const { config } = await api("/api/config");
   const f = $("#formConfig");
-  f.gemini.value = config.chaves.gemini;
+  $("#iaInfo").textContent = config.assistente_configurado
+    ? "✓ Assistente configurado pelo TI neste computador."
+    : "✕ Assistente ainda não configurado neste computador — fale com o TI.";
   f.fxgJunto.checked = !!config.fluxogama_junto_illustre;
   f.pastas.value = (config.pastas_extras || []).join("\n");
   $("#dlgConfig").showModal();
 }
 function dadosConfig() {
   const f = $("#formConfig");
-  return { provedor: "gemini", reserva: false, fluxogama_junto_illustre: f.fxgJunto.checked,
-           chaves: { gemini: f.gemini.value },
+  return { fluxogama_junto_illustre: f.fxgJunto.checked,
            pastas_extras: f.pastas.value.split("\n").map(s => s.trim()).filter(Boolean) };
 }
 $("#btnConfig").addEventListener("click", abrirConfig);
 $("#salvarConfig").addEventListener("click", async ev => {
   ev.preventDefault(); await api("/api/config", dadosConfig()); $("#dlgConfig").close(); avisar("Configurações salvas ✓");
 });
-document.querySelectorAll("[data-testar]").forEach(b => b.addEventListener("click", async () => {
-  await api("/api/config", dadosConfig());
-  const r = await api("/api/testar", { provedor: b.dataset.testar });
-  $("#testeInfo").textContent = r.ok
-    ? `✓ Chave funcionando. Modelo ${r.modelo_atual} ${r.modelo_existe ? "pronto para usar" : "NÃO encontrado — avise o TI"}.`
-    : "✕ Não funcionou: " + r.erro;
-}));
 
 async function carregarAtualizacoes() {
   const e = await api("/api/atualizacoes");

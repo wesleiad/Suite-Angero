@@ -20,8 +20,7 @@ Escreva o que precisa, em português:
 - *"Exporte a segunda prancheta em JPG na Área de Trabalho"*
 - *"Como faço contorno tracejado?"*
 
-Primeira vez: **⚙ Configurações** › cole a **chave do Google Gemini** (grátis em aistudio.google.com › Get API key)
-› **Testar** › **Salvar**. A chave fica só neste computador.
+O assistente já vem configurado pelo TI. Se aparecer "fale com o TI", peça a configuração.
 
 > No plano gratuito o Google pode usar o que é digitado no chat para melhorar os produtos dele.
 > Não envie informações sigilosas de coleção pelo assistente. Os arquivos em si não são enviados.
