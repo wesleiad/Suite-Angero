@@ -18,7 +18,7 @@ from pathlib import Path
 
 AQUI = Path(__file__).resolve().parent
 SRC = Path(os.environ.get("SUITE_SRC", Path(os.environ["LOCALAPPDATA"]) / "SuiteAngero" / "src"))
-PORTA = 8795
+PORTA = int(os.environ.get("EDITOR_PORTA", "8795"))
 PROGRAMAS = {
     "illustre": "Illustre - Angerô", "fotografe": "Fotografe - Angerô", "pdf": "PDF - Angerô",
     "cena": "Cena - Angerô", "lightbridge": "LightBridge - Angerô",
@@ -46,9 +46,33 @@ def _n(v):
     return int(v, 16) if v.lower().startswith("0x") else int(v)
 
 
+BAIXANDO: dict[str, str] = {}  # pid -> situação do download do repositório
+
+
+def preparar_repositorios():
+    """Em outra máquina: baixa (git clone, ramo angero) os repositórios que faltarem, em segundo plano."""
+    faltam = [pid for pid in PROGRAMAS if not (SRC / f"{pid}-angero" / ".git").is_dir()]
+    for pid in faltam:
+        BAIXANDO[pid] = "na fila para baixar o código do programa (primeira vez)…"
+    for pid in faltam:
+        destino = SRC / f"{pid}-angero"
+        BAIXANDO[pid] = "baixando o código do programa (primeira vez, alguns minutos)…"
+        try:
+            SRC.mkdir(parents=True, exist_ok=True)
+            r = subprocess.run(["git", "clone", "-b", "angero", f"https://github.com/wesleiad/{pid}-angero.git", str(destino)],
+                               capture_output=True, text=True, encoding="utf-8", creationflags=SEM_JANELA)
+            BAIXANDO[pid] = "" if r.returncode == 0 else "não foi possível baixar: " + (r.stderr or r.stdout)[-300:]
+        except FileNotFoundError:
+            BAIXANDO[pid] = "o Git não está instalado (winget install Git.Git) — necessário para baixar e publicar"
+        if not BAIXANDO[pid]:
+            del BAIXANDO[pid]
+
+
 def ler_cores(pid):
     arq = arquivo_tema(pid)
     if not arq.is_file():
+        if BAIXANDO.get(pid):
+            return {"erro": BAIXANDO[pid]}
         return {"erro": f"não encontrei {arq} (clone o repositório {pid}-angero)"}
     grupo, cores = "Geral", []
     for i, linha in enumerate(arq.read_bytes().decode("utf-8").replace("\r\n", "\n").split("\n")):
@@ -151,6 +175,7 @@ def main():
     srv = ThreadingHTTPServer(("127.0.0.1", PORTA), Handler)
     url = f"http://127.0.0.1:{PORTA}/"
     print("Editor Visual em", url)
+    threading.Thread(target=preparar_repositorios, daemon=True).start()
     edge = Path(os.environ.get("ProgramFiles(x86)", "")) / "Microsoft/Edge/Application/msedge.exe"
     if "--sem-janela" not in sys.argv and edge.is_file():
         threading.Timer(0.5, lambda: subprocess.Popen([str(edge), f"--app={url}", "--window-size=1200,860"])).start()

@@ -29,6 +29,7 @@ COR = {
     "galeria": "#c9ec6e",    # LightBridge: verde-limão
     "fluxogama": "#a9c6e0",  # Fluxogama: azul-acinzentado
     "assistente": "#ffd27a", # Assistente IA: amarelo
+    "editor": "#f5b3e0",     # Editor Visual: rosa-lilás
 }
 
 DEFS = f"""
@@ -97,6 +98,14 @@ GLIFOS = {
     "fluxogama": lambda n: mancha(n, '<path d="M84 172 C60 172 50 154 56 138 C62 122 78 116 92 120 C96 96 116 82 138 85 C162 88 176 108 176 126 C192 127 202 142 198 157 C195 166 186 172 174 172 Z"/>') + f"""
 <path d="M84 172 C60 172 50 154 56 138 C62 122 78 116 92 120 C96 96 116 82 138 85 C162 88 176 108 176 126 C192 127 202 142 198 157 C195 166 186 172 174 172" {L}/>
 <path d="M128 196 V134 M106 156 L128 134 L150 156" {L}/>
+""",
+    # Paleta de pintor (Editor Visual: cores dos programas)
+    "editor": lambda n: mancha(n, '<path d="M128 60 C170 60 200 88 200 122 C200 146 182 150 168 146 C152 142 142 152 148 168 C154 186 140 196 124 196 C86 196 56 166 56 128 C56 90 88 60 128 60 Z"/>') + f"""
+<path d="M128 60 C170 60 200 88 200 122 C200 146 182 150 168 146 C152 142 142 152 148 168 C154 186 140 196 124 196 C86 196 56 166 56 128 C56 90 88 60 128 60 Z" {L}/>
+<circle cx="98" cy="104" r="11" fill="#ff8a5c" stroke="{ANIL}" stroke-width="6"/>
+<circle cx="134" cy="90" r="11" fill="#38b6f0" stroke="{ANIL}" stroke-width="6"/>
+<circle cx="168" cy="110" r="11" fill="#3fbf8a" stroke="{ANIL}" stroke-width="6"/>
+<circle cx="92" cy="146" r="11" fill="#9b6cf0" stroke="{ANIL}" stroke-width="6"/>
 """,
     # Brilhos de IA
     "assistente": lambda n: mancha(n, '<path d="M118 62 C123 102 134 113 174 118 C134 123 123 134 118 174 C113 134 102 123 62 118 C102 113 113 102 118 62 Z"/>') + f"""

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs>
+  <radialGradient id="m1" cx=".15" cy=".85" r=".7"><stop offset="0" stop-color="#ffd3c2"/><stop offset="1" stop-color="#ffd3c2" stop-opacity="0"/></radialGradient>
+  <radialGradient id="m2" cx=".55" cy=".05" r=".55"><stop offset="0" stop-color="#e0fe9c" stop-opacity=".75"/><stop offset="1" stop-color="#e0fe9c" stop-opacity="0"/></radialGradient>
+  <radialGradient id="m3" cx=".95" cy=".45" r=".6"><stop offset="0" stop-color="#b2dcfa"/><stop offset="1" stop-color="#b2dcfa" stop-opacity="0"/></radialGradient>
+  <radialGradient id="m4" cx=".85" cy=".95" r=".5"><stop offset="0" stop-color="#f0cdff"/><stop offset="1" stop-color="#f0cdff" stop-opacity="0"/></radialGradient>
+</defs>
+<rect x="8" y="8" width="240" height="240" rx="58" fill="#eeecde"/>
+<rect x="8" y="8" width="240" height="240" rx="58" fill="url(#m1)"/>
+<rect x="8" y="8" width="240" height="240" rx="58" fill="url(#m2)"/>
+<rect x="8" y="8" width="240" height="240" rx="58" fill="url(#m3)"/>
+<rect x="8" y="8" width="240" height="240" rx="58" fill="url(#m4)"/>
+<rect x="9" y="9" width="238" height="238" rx="57" fill="none" stroke="#2b3a8f" stroke-opacity=".14" stroke-width="2"/>
+<g transform="translate(9 8)" fill="#f5b3e0"><path d="M128 60 C170 60 200 88 200 122 C200 146 182 150 168 146 C152 142 142 152 148 168 C154 186 140 196 124 196 C86 196 56 166 56 128 C56 90 88 60 128 60 Z"/></g>
+<path d="M128 60 C170 60 200 88 200 122 C200 146 182 150 168 146 C152 142 142 152 148 168 C154 186 140 196 124 196 C86 196 56 166 56 128 C56 90 88 60 128 60 Z" fill="none" stroke="#2b3a8f" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="98" cy="104" r="11" fill="#ff8a5c" stroke="#2b3a8f" stroke-width="6"/>
+<circle cx="134" cy="90" r="11" fill="#38b6f0" stroke="#2b3a8f" stroke-width="6"/>
+<circle cx="168" cy="110" r="11" fill="#3fbf8a" stroke="#2b3a8f" stroke-width="6"/>
+<circle cx="92" cy="146" r="11" fill="#9b6cf0" stroke="#2b3a8f" stroke-width="6"/>
+</svg>
