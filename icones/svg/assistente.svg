@@ -1,16 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
 <defs>
-  <linearGradient id="g" x1="0" y1="1" x2="1" y2="0">
-    <stop offset="0" stop-color="#2b3a8f"/>
-    <stop offset=".55" stop-color="#4a64c0"/>
-    <stop offset="1" stop-color="#86d4f5"/>
-  </linearGradient>
+  <radialGradient id="m1" cx=".15" cy=".85" r=".7"><stop offset="0" stop-color="#ffd3c2"/><stop offset="1" stop-color="#ffd3c2" stop-opacity="0"/></radialGradient>
+  <radialGradient id="m2" cx=".55" cy=".05" r=".55"><stop offset="0" stop-color="#e0fe9c" stop-opacity=".75"/><stop offset="1" stop-color="#e0fe9c" stop-opacity="0"/></radialGradient>
+  <radialGradient id="m3" cx=".95" cy=".45" r=".6"><stop offset="0" stop-color="#b2dcfa"/><stop offset="1" stop-color="#b2dcfa" stop-opacity="0"/></radialGradient>
+  <radialGradient id="m4" cx=".85" cy=".95" r=".5"><stop offset="0" stop-color="#f0cdff"/><stop offset="1" stop-color="#f0cdff" stop-opacity="0"/></radialGradient>
 </defs>
-<rect x="8" y="8" width="240" height="240" rx="56" fill="url(#g)"/>
-<path d="M8 196 C 70 150, 130 222, 248 150 L 248 192 C 248 223, 223 248, 192 248 L 64 248 C 33 248, 8 223, 8 192 Z"
-      fill="#ffffff" fill-opacity=".13"/>
-
-<path d="M118 52 C 124 100, 136 112, 184 118 C 136 124, 124 136, 118 184 C 112 136, 100 124, 52 118 C 100 112, 112 100, 118 52 Z" fill="#ffffff"/>
-<path d="M182 150 C 185 170, 190 175, 210 178 C 190 181, 185 186, 182 206 C 179 186, 174 181, 154 178 C 174 175, 179 170, 182 150 Z" fill="#ffffff"/>
-<circle cx="182" cy="74" r="10" fill="#ffffff"/>
+<rect x="8" y="8" width="240" height="240" rx="58" fill="#eeecde"/>
+<rect x="8" y="8" width="240" height="240" rx="58" fill="url(#m1)"/>
+<rect x="8" y="8" width="240" height="240" rx="58" fill="url(#m2)"/>
+<rect x="8" y="8" width="240" height="240" rx="58" fill="url(#m3)"/>
+<rect x="8" y="8" width="240" height="240" rx="58" fill="url(#m4)"/>
+<rect x="9" y="9" width="238" height="238" rx="57" fill="none" stroke="#2b3a8f" stroke-opacity=".14" stroke-width="2"/>
+<g transform="translate(9 8)" fill="#ffd27a"><path d="M118 62 C123 102 134 113 174 118 C134 123 123 134 118 174 C113 134 102 123 62 118 C102 113 113 102 118 62 Z"/></g>
+<path d="M118 62 C123 102 134 113 174 118 C134 123 123 134 118 174 C113 134 102 123 62 118 C102 113 113 102 118 62 Z" fill="none" stroke="#2b3a8f" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M174 148 C176 162 180 166 194 168 C180 170 176 174 174 188 C172 174 168 170 154 168 C168 166 172 162 174 148 Z" fill="none" stroke="#2b3a8f" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="178" cy="78" r="7" fill="#2b3a8f"/>
 </svg>

@@ -55,7 +55,9 @@ def previa(nomes: list[str]):
     partes = []
     for i, nome in enumerate(nomes):
         corpo = (SVG / f"{nome}.svg").read_text(encoding="utf-8")
-        corpo = re.sub(r'id="g"', f'id="g{i}"', corpo).replace("url(#g)", f"url(#g{i})")
+        # ids de gradiente únicos por ícone, senão um ícone usa o degradê do outro
+        corpo = re.sub(r'id="(\w+)"', rf'id="\1_{i}"', corpo)
+        corpo = re.sub(r"url\(#(\w+)\)", rf"url(#\1_{i})", corpo)
         corpo = corpo.replace('<svg ', f'<svg x="{20 + i * 276}" y="20" ', 1)
         partes.append(corpo)
     largura = 20 + len(nomes) * 276

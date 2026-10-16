@@ -6,41 +6,48 @@
 <title>Suíte Angerô</title>
 <link rel="icon" href="/web/img/suite.svg">
 <style>
+/* Identidade "Lua Nova" com as cores da Angerô: fundo bege nebuloso, tinta e destaque anil,
+   títulos em Fraunces e texto em Montserrat (fontes OFL, em /web/fonts). */
+@font-face { font-family: "Montserrat"; src: url("/web/fonts/Montserrat-Regular.ttf") format("truetype"); font-weight: 400; }
+@font-face { font-family: "Montserrat"; src: url("/web/fonts/Montserrat-SemiBold.ttf") format("truetype"); font-weight: 600 700; }
+@font-face { font-family: "Fraunces"; src: url("/web/fonts/Fraunces-var.ttf") format("truetype"); font-weight: 100 900; }
 :root {
   --anil: #2b3a8f; --anil-medio: #4a64c0; --ceu: #86d4f5;
-  --degrade: linear-gradient(135deg, #2b3a8f 0%, #4a64c0 55%, #86d4f5 100%);
-  --page: #f4f5f8; --card: #ffffff; --texto: #111827; --texto-2: #4b5563; --mudo: #8a909c;
-  --borda: rgba(17,24,39,.09); --suave: #eef1f8; --ok: #0f9d58; --erro: #dc2626;
-  --sombra: 0 1px 2px rgba(17,24,39,.04), 0 6px 20px rgba(17,24,39,.06);
-  --raio: 16px;
+  --destaque: var(--anil);
+  --degrade: var(--destaque);
+  --bege: #eeecde; --pessego: #ffd3c2; --lilas: #f0cdff; --azul: #b2dcfa; --verde: #e0fe9c;
+  --page: var(--bege); --card: rgba(255,255,255,.72); --texto: #1e234d; --texto-2: #4e5478; --mudo: #7c809c;
+  --borda: rgba(43,58,143,.13); --suave: rgba(43,58,143,.07); --ok: #1f8a5b; --erro: #c62f4b;
+  --sombra: 0 1px 2px rgba(30,35,77,.04), 0 10px 30px rgba(30,35,77,.07);
+  --raio: 18px;
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --page: #0e1014; --card: #171a21; --texto: #f3f4f6; --texto-2: #b6bcc8; --mudo: #7c8391;
-    --borda: rgba(255,255,255,.08); --suave: #1f2430; --sombra: 0 6px 20px rgba(0,0,0,.3);
-    color-scheme: dark;
-  }
-}
 * { box-sizing: border-box; }
-body { margin: 0; font: 15px/1.45 "Segoe UI", system-ui, sans-serif; background: var(--page); color: var(--texto);
+body { margin: 0; font: 15px/1.5 "Montserrat", "Segoe UI", system-ui, sans-serif; color: var(--texto);
+       background: var(--page) fixed;
+       background-image:
+         radial-gradient(60% 55% at 8% 92%, var(--pessego) 0%, transparent 70%),
+         radial-gradient(45% 40% at 55% 0%, color-mix(in srgb, var(--verde) 70%, transparent) 0%, transparent 70%),
+         radial-gradient(55% 60% at 100% 40%, var(--azul) 0%, transparent 70%),
+         radial-gradient(45% 45% at 90% 100%, var(--lilas) 0%, transparent 70%);
        height: 100vh; display: grid; grid-template-columns: 1fr 400px; overflow: hidden; }
 main { overflow: auto; padding: 28px 36px 40px; }
 header { display: flex; align-items: center; gap: 16px; margin-bottom: 26px; }
-header img { height: 54px; background: #fff; border-radius: 12px; padding: 6px 10px; box-shadow: var(--sombra); }
-header h1 { margin: 0; font-size: 24px; letter-spacing: -.01em; }
-header p { margin: 2px 0 0; color: var(--texto-2); font-size: 14px; }
+header img { height: 54px; background: #fff; border-radius: 14px; padding: 6px 10px; box-shadow: var(--sombra); }
+header h1 { margin: 0; font: 600 30px/1.1 "Fraunces", Georgia, serif; color: var(--destaque); letter-spacing: -.01em; }
+header p { margin: 4px 0 0; color: var(--texto-2); font-size: 14px; }
 header .acoes { margin-left: auto; display: flex; gap: 8px; }
-button { font: inherit; cursor: pointer; border-radius: 10px; border: 1px solid var(--borda); background: var(--card);
-         color: var(--texto); padding: 8px 14px; }
-button:hover { border-color: var(--anil-medio); }
-button.prim { background: var(--degrade); color: #fff; border: 0; font-weight: 600; }
-button.prim:hover { filter: brightness(1.08); }
-h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--mudo); margin: 28px 0 12px; }
+button { font: inherit; cursor: pointer; border-radius: 99px; border: 1px solid var(--borda); background: rgba(255,255,255,.8);
+         color: var(--texto); padding: 8px 16px; }
+button:hover { border-color: var(--destaque); }
+button.prim { background: var(--destaque); color: #fff; border: 0; font-weight: 600; }
+button.prim:hover { filter: brightness(1.12); }
+h2 { font: 600 19px/1.2 "Fraunces", Georgia, serif; color: var(--destaque); margin: 30px 0 12px; }
 
 .grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
 .app { background: var(--card); border: 1px solid var(--borda); border-radius: var(--raio); padding: 18px;
-       box-shadow: var(--sombra); display: flex; flex-direction: column; gap: 10px; transition: transform .12s; }
+       box-shadow: var(--sombra); display: flex; flex-direction: column; gap: 10px; transition: transform .12s;
+       backdrop-filter: blur(10px); }
 .app:hover { transform: translateY(-2px); }
 .app .topo { display: flex; align-items: center; gap: 12px; }
 .app img { width: 56px; height: 56px; }
@@ -134,7 +141,7 @@ dialog::backdrop { background: rgba(10,14,30,.45); }
     <small id="atualInfo" style="color:var(--mudo)"></small>
   </div>
 
-  <div class="credito">Feito por: Weslei Domingues - 2026 · Grupo Angerô · <a href="https://github.com/wesleiad/Suite-Angero" target="_blank" style="color:inherit">Ajuda e código-fonte</a></div>
+  <div class="credito">© 2026 Weslei Domingues · Grupo Angerô · Identidade "Lua Nova" · <a href="https://github.com/wesleiad/Suite-Angero" target="_blank" style="color:inherit">Ajuda e código-fonte</a></div>
 </main>
 
 <aside>
@@ -161,6 +168,11 @@ dialog::backdrop { background: rgba(10,14,30,.45); }
     <h3>⚙ Configurações</h3>
     <div class="nota" id="iaInfo">Assistente: verificando…</div>
     <label class="linha" style="flex-direction:row;font-weight:400"><input type="checkbox" name="fxgJunto" style="width:auto"> Abrir o painel do Fluxogama junto com o Illustre</label>
+    <label class="linha" style="flex-direction:row;font-weight:400"><input type="checkbox" name="buscarRede" style="width:auto"> Procurar arquivos também nas unidades de rede (P:\ e outras)</label>
+    <div class="linha" style="font-size:13px;font-weight:600">Cor do tema
+      <input type="color" name="corTema" style="width:52px;height:32px;padding:2px;border-radius:8px">
+      <button type="button" id="corPadrao">Cores padrão Angerô</button>
+    </div>
     <label>Pastas extras para procurar arquivos (uma por linha)
       <textarea name="pastas" rows="3" placeholder="P:\&#10;\\servidor\pasta"></textarea>
     </label>
@@ -283,18 +295,23 @@ async function abrirConfig() {
     ? "✓ Assistente configurado pelo TI neste computador."
     : "✕ Assistente ainda não configurado neste computador — fale com o TI.";
   f.fxgJunto.checked = !!config.fluxogama_junto_illustre;
+  f.buscarRede.checked = config.buscar_rede !== false;
+  f.corTema.value = /^#[0-9a-f]{6}$/i.test(config.cor_tema || "") ? config.cor_tema : COR_PADRAO;
   f.pastas.value = (config.pastas_extras || []).join("\n");
   $("#dlgConfig").showModal();
 }
 function dadosConfig() {
   const f = $("#formConfig");
-  return { fluxogama_junto_illustre: f.fxgJunto.checked,
+  return { fluxogama_junto_illustre: f.fxgJunto.checked, buscar_rede: f.buscarRede.checked,
+           cor_tema: f.corTema.value.toLowerCase() === COR_PADRAO ? "" : f.corTema.value,
            pastas_extras: f.pastas.value.split("\n").map(s => s.trim()).filter(Boolean) };
 }
 $("#btnConfig").addEventListener("click", abrirConfig);
 $("#salvarConfig").addEventListener("click", async ev => {
-  ev.preventDefault(); await api("/api/config", dadosConfig()); $("#dlgConfig").close(); avisar("Configurações salvas ✓");
+  ev.preventDefault(); const d = dadosConfig(); await api("/api/config", d); aplicarCor(d.cor_tema); $("#dlgConfig").close(); avisar("Configurações salvas ✓");
 });
+$("#formConfig").corTema.addEventListener("input", ev => aplicarCor(ev.target.value));
+$("#corPadrao").addEventListener("click", () => { $("#formConfig").corTema.value = COR_PADRAO; aplicarCor(COR_PADRAO); });
 
 async function carregarAtualizacoes() {
   const e = await api("/api/atualizacoes");
@@ -306,6 +323,11 @@ async function carregarAtualizacoes() {
   $("#atualInfo").textContent = e.verificando ? "verificando…" : (e.ultima_verificacao ? "Última verificação: " + e.ultima_verificacao : "");
 }
 $("#btnAtualizar").addEventListener("click", async () => { await api("/api/atualizar", {}); setTimeout(carregarAtualizacoes, 1500); });
+
+// Cor do tema (destaque) escolhida em Configurações; vazio = o anil da Angerô.
+const COR_PADRAO = "#2b3a8f";
+function aplicarCor(cor) { document.documentElement.style.setProperty("--destaque", /^#[0-9a-f]{6}$/i.test(cor || "") ? cor : COR_PADRAO); }
+api("/api/config").then(r => aplicarCor(r.config.cor_tema)).catch(() => {});
 
 carregarProgramas();
 carregarAtualizacoes();

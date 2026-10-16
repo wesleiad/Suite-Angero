@@ -1,4 +1,9 @@
-"""Gera os ícones da Suíte Angerô em SVG (paleta e estilo da folha do logo).
+"""Gera os ícones da Suíte Angerô em SVG, na identidade "Lua Nova" com as cores da Angerô.
+
+Programas: fundo bege com manchas nebulosas (pêssego, verde-claro, azul, lilás), o desenho em
+traço fino anil e, por baixo dele, uma mancha de cor pastel levemente deslocada (como as
+ilustrações do modelo). Suíte: a folha da Angerô no fundo branco (o ícone de antes).
+Sem filtros, que nem todo leitor de SVG desenha.
 
 Saída: icones/svg/<nome>.svg  — depois `gerar_ico.py` converte para PNG/ICO.
 """
@@ -7,80 +12,103 @@ from pathlib import Path
 AQUI = Path(__file__).resolve().parent
 SAIDA = AQUI / "svg"
 
-# Cores tiradas da folha do logo Grupo Angerô (anil -> azul-céu)
+# Angerô (folha do logo) + paleta "Lua Nova"
 ANIL = "#2b3a8f"
-ANIL_MEIO = "#4a64c0"
-CEU = "#86d4f5"
+BEGE = "#eeecde"
+PESSEGO = "#ffd3c2"
+LILAS = "#f0cdff"
+AZUL = "#b2dcfa"
+VERDE = "#e0fe9c"
+
+# Cor da mancha de cada programa
+COR = {
+    "vetor": "#ffb79c",      # Illustre: pêssego forte
+    "foto": "#9fd2fa",       # Fotografe: azul
+    "pdf": "#f7a8c9",        # PDF: rosa
+    "video": "#dcb3f5",      # Cena: lilás
+    "galeria": "#c9ec6e",    # LightBridge: verde-limão
+    "fluxogama": "#a9c6e0",  # Fluxogama: azul-acinzentado
+    "assistente": "#ffd27a", # Assistente IA: amarelo
+}
 
 DEFS = f"""
 <defs>
-  <linearGradient id="g" x1="0" y1="1" x2="1" y2="0">
-    <stop offset="0" stop-color="{ANIL}"/>
-    <stop offset=".55" stop-color="{ANIL_MEIO}"/>
-    <stop offset="1" stop-color="{CEU}"/>
-  </linearGradient>
+  <radialGradient id="m1" cx=".15" cy=".85" r=".7"><stop offset="0" stop-color="{PESSEGO}"/><stop offset="1" stop-color="{PESSEGO}" stop-opacity="0"/></radialGradient>
+  <radialGradient id="m2" cx=".55" cy=".05" r=".55"><stop offset="0" stop-color="{VERDE}" stop-opacity=".75"/><stop offset="1" stop-color="{VERDE}" stop-opacity="0"/></radialGradient>
+  <radialGradient id="m3" cx=".95" cy=".45" r=".6"><stop offset="0" stop-color="{AZUL}"/><stop offset="1" stop-color="{AZUL}" stop-opacity="0"/></radialGradient>
+  <radialGradient id="m4" cx=".85" cy=".95" r=".5"><stop offset="0" stop-color="{LILAS}"/><stop offset="1" stop-color="{LILAS}" stop-opacity="0"/></radialGradient>
 </defs>"""
 
-# Fundo: quadrado arredondado em degradê + onda branca suave (eco da onda da folha)
-FUNDO = """
-<rect x="8" y="8" width="240" height="240" rx="56" fill="url(#g)"/>
-<path d="M8 196 C 70 150, 130 222, 248 150 L 248 192 C 248 223, 223 248, 192 248 L 64 248 C 33 248, 8 223, 8 192 Z"
-      fill="#ffffff" fill-opacity=".13"/>
+FUNDO = f"""
+<rect x="8" y="8" width="240" height="240" rx="58" fill="{BEGE}"/>
+<rect x="8" y="8" width="240" height="240" rx="58" fill="url(#m1)"/>
+<rect x="8" y="8" width="240" height="240" rx="58" fill="url(#m2)"/>
+<rect x="8" y="8" width="240" height="240" rx="58" fill="url(#m3)"/>
+<rect x="8" y="8" width="240" height="240" rx="58" fill="url(#m4)"/>
+<rect x="9" y="9" width="238" height="238" rx="57" fill="none" stroke="{ANIL}" stroke-opacity=".14" stroke-width="2"/>
 """
 
-def B(w=13):
-    return f'fill="none" stroke="#ffffff" stroke-width="{w}" stroke-linecap="round" stroke-linejoin="round"'
+L = f'fill="none" stroke="{ANIL}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"'
+
+
+def mancha(nome: str, forma: str) -> str:
+    """A mancha pastel, deslocada do traço."""
+    return f'<g transform="translate(9 8)" fill="{COR[nome]}">{forma}</g>'
+
 
 GLIFOS = {
-    # Pena de desenho vetorial (Illustrator)
-    "vetor": f"""
-<path d="M128 44 L176 118 L140 186 L116 186 L80 118 Z" fill="#ffffff"/>
-<path d="M128 68 L128 124" stroke="{ANIL_MEIO}" stroke-width="9" stroke-linecap="round"/>
-<circle cx="128" cy="132" r="11" fill="{ANIL_MEIO}"/>
-<rect x="108" y="194" width="40" height="18" rx="6" fill="#ffffff"/>
+    # Pena vetorial com curva e alças
+    "vetor": lambda n: mancha(n, '<path d="M128 64 L166 120 L146 166 L110 166 L90 120 Z"/>') + f"""
+<path d="M128 64 L166 120 L146 166 L110 166 L90 120 Z" {L}/>
+<path d="M128 90 V126" {L}/><circle cx="128" cy="134" r="8" {L}/>
+<path d="M108 184 H148" {L}/>
+<path d="M52 112 H86 M170 112 H204" {L}/>
+<rect x="40" y="102" width="20" height="20" rx="5" {L}/><rect x="196" y="102" width="20" height="20" rx="5" {L}/>
 """,
-    # Moldura com montanha e sol (Photoshop)
-    "foto": f"""
-<rect x="52" y="62" width="152" height="132" rx="22" {B()}/>
-<path d="M66 182 L112 128 L140 160 L160 140 L192 182 Z" fill="#ffffff"/>
-<circle cx="160" cy="100" r="15" fill="#ffffff"/>
+    # Câmera com lente
+    "foto": lambda n: mancha(n, '<rect x="58" y="88" width="140" height="100" rx="20"/>') + f"""
+<rect x="58" y="88" width="140" height="100" rx="20" {L}/>
+<path d="M98 88 L108 70 H148 L158 88" {L}/>
+<circle cx="128" cy="138" r="30" {L}/><circle cx="128" cy="138" r="13" {L}/>
+<circle cx="176" cy="108" r="5" fill="{ANIL}"/>
 """,
-    # Documento com dobra (leitor/editor de PDF)
-    "pdf": f"""
-<path d="M76 48 H146 L184 86 V196 C184 204 178 210 170 210 H76 C68 210 62 204 62 196 V62 C62 54 68 48 76 48 Z" {B()}/>
-<path d="M144 50 V88 H182" {B()}/>
-<path d="M90 130 H158 M90 160 H158 M90 190 H132" {B(11)}/>
+    # Documento com dobra e selo PDF
+    "pdf": lambda n: mancha(n, '<path d="M84 56 H146 L176 86 V196 H84 Z"/>') + f"""
+<path d="M92 56 H146 L176 86 V188 C176 193 172 197 167 197 H92 C87 197 83 193 83 188 V65 C83 60 87 56 92 56 Z" {L}/>
+<path d="M144 56 V88 H176" {L}/>
+<path d="M102 116 H156 M102 136 H156" {L}/>
+<rect x="98" y="152" width="62" height="30" rx="8" fill="{ANIL}"/>
+<text x="129" y="174" text-anchor="middle" font-family="Montserrat, Arial, Helvetica, sans-serif" font-weight="800" font-size="20" fill="#ffffff">PDF</text>
 """,
-    # Tela com play (editor de vídeo)
-    "video": f"""
-<rect x="44" y="68" width="168" height="120" rx="24" {B()}/>
-<path d="M112 102 L160 128 L112 154 Z" fill="#ffffff" stroke="#ffffff" stroke-width="8" stroke-linejoin="round"/>
-<path d="M92 212 H164" {B()}/>
+    # Claquete com play
+    "video": lambda n: mancha(n, '<rect x="58" y="100" width="140" height="92" rx="14"/>') + f"""
+<rect x="58" y="100" width="140" height="92" rx="14" {L}/>
+<path d="M58 100 L52 76 L190 50 L196 74" {L}/>
+<path d="M86 70 L100 94 M126 62 L140 88 M164 56 L178 81" {L}/>
+<path d="M116 126 L148 146 L116 166 Z" {L}/>
 """,
-    # Grade de miniaturas (galeria / Bridge)
-    "galeria": f"""
-<rect x="52" y="52" width="66" height="66" rx="16" fill="#ffffff"/>
-<rect x="138" y="52" width="66" height="66" rx="16" {B(11)}/>
-<rect x="52" y="138" width="66" height="66" rx="16" {B(11)}/>
-<rect x="138" y="138" width="66" height="66" rx="16" {B(11)}/>
+    # Grade de fotos, uma com montanha e sol
+    "galeria": lambda n: mancha(n, '<rect x="58" y="58" width="62" height="62" rx="14"/><rect x="136" y="136" width="62" height="62" rx="14"/>') + f"""
+<rect x="58" y="58" width="62" height="62" rx="14" {L}/><rect x="136" y="58" width="62" height="62" rx="14" {L}/>
+<rect x="58" y="136" width="62" height="62" rx="14" {L}/><rect x="136" y="136" width="62" height="62" rx="14" {L}/>
+<path d="M66 110 L82 92 L94 104 L102 96 L112 110" {L}/><circle cx="102" cy="76" r="6" {L}/>
 """,
-    # Nuvem com seta (plugin Fluxogama: enviar/baixar do portal)
-    "fluxogama": f"""
-<path d="M78 178 C 50 178, 38 156, 44 136 C 50 116, 70 108, 86 112 C 92 84, 118 66, 146 70 C 176 74, 194 98, 194 122
-         C 214 124, 226 142, 222 160 C 218 172, 208 178, 194 178" {B()}/>
-<path d="M128 206 V 128 M 102 152 L 128 126 L 154 152" {B()}/>
+    # Nuvem com seta
+    "fluxogama": lambda n: mancha(n, '<path d="M84 172 C60 172 50 154 56 138 C62 122 78 116 92 120 C96 96 116 82 138 85 C162 88 176 108 176 126 C192 127 202 142 198 157 C195 166 186 172 174 172 Z"/>') + f"""
+<path d="M84 172 C60 172 50 154 56 138 C62 122 78 116 92 120 C96 96 116 82 138 85 C162 88 176 108 176 126 C192 127 202 142 198 157 C195 166 186 172 174 172" {L}/>
+<path d="M128 196 V134 M106 156 L128 134 L150 156" {L}/>
 """,
-    # Brilho de IA (assistente)
-    "assistente": """
-<path d="M118 52 C 124 100, 136 112, 184 118 C 136 124, 124 136, 118 184 C 112 136, 100 124, 52 118 C 100 112, 112 100, 118 52 Z" fill="#ffffff"/>
-<path d="M182 150 C 185 170, 190 175, 210 178 C 190 181, 185 186, 182 206 C 179 186, 174 181, 154 178 C 174 175, 179 170, 182 150 Z" fill="#ffffff"/>
-<circle cx="182" cy="74" r="10" fill="#ffffff"/>
+    # Brilhos de IA
+    "assistente": lambda n: mancha(n, '<path d="M118 62 C123 102 134 113 174 118 C134 123 123 134 118 174 C113 134 102 123 62 118 C102 113 113 102 118 62 Z"/>') + f"""
+<path d="M118 62 C123 102 134 113 174 118 C134 123 123 134 118 174 C113 134 102 123 62 118 C102 113 113 102 118 62 Z" {L}/>
+<path d="M174 148 C176 162 180 166 194 168 C180 170 176 174 174 188 C172 174 168 170 154 168 C168 166 172 162 174 148 Z" {L}/>
+<circle cx="178" cy="78" r="7" fill="{ANIL}"/>
 """,
 }
 
-# Folha do logo redesenhada em vetor (duas metades separadas pela onda branca,
-# com os cortes de "pena"); coordenadas na escala da ampliação 600x360 do logo.
-FOLHA = """
+# Suíte: a folha do logo da Angerô no fundo branco (o ícone de antes)
+SUITE = """
+<rect x="8" y="8" width="240" height="240" rx="56" fill="#ffffff" stroke="#e3e7f3" stroke-width="4"/>
 <linearGradient id="gf" gradientUnits="userSpaceOnUse" x1="40" y1="230" x2="585" y2="110">
   <stop offset="0" stop-color="#34479f"/><stop offset=".5" stop-color="#5f82cc"/><stop offset="1" stop-color="#90d9f5"/>
 </linearGradient>
@@ -99,24 +127,19 @@ FOLHA = """
 </g>
 """
 
-SUITE = f"""
-<rect x="8" y="8" width="240" height="240" rx="56" fill="#ffffff" stroke="#e3e7f3" stroke-width="4"/>
-{FOLHA}
-"""
 
-
-def svg(conteudo: str) -> str:
+def svg(cabeca: str, conteudo: str) -> str:
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">'
-        f"{DEFS}{conteudo}</svg>\n"
+        f"{cabeca}{conteudo}</svg>\n"
     )
 
 
 def main():
     SAIDA.mkdir(exist_ok=True)
     for nome, glifo in GLIFOS.items():
-        (SAIDA / f"{nome}.svg").write_text(svg(FUNDO + glifo), encoding="utf-8")
-    (SAIDA / "suite.svg").write_text(svg(SUITE), encoding="utf-8")
+        (SAIDA / f"{nome}.svg").write_text(svg(DEFS, FUNDO + glifo(nome)), encoding="utf-8")
+    (SAIDA / "suite.svg").write_text(svg("", SUITE), encoding="utf-8")
     print("SVGs em", SAIDA)
 
 

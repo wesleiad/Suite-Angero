@@ -1,13 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-<defs>
-  <linearGradient id="g" x1="0" y1="1" x2="1" y2="0">
-    <stop offset="0" stop-color="#2b3a8f"/>
-    <stop offset=".55" stop-color="#4a64c0"/>
-    <stop offset="1" stop-color="#86d4f5"/>
-  </linearGradient>
-</defs>
 <rect x="8" y="8" width="240" height="240" rx="56" fill="#ffffff" stroke="#e3e7f3" stroke-width="4"/>
-
 <linearGradient id="gf" gradientUnits="userSpaceOnUse" x1="40" y1="230" x2="585" y2="110">
   <stop offset="0" stop-color="#34479f"/><stop offset=".5" stop-color="#5f82cc"/><stop offset="1" stop-color="#90d9f5"/>
 </linearGradient>
@@ -24,5 +16,4 @@
     <path d="M305 295 C284 272, 264 248, 252 228"/>
   </g>
 </g>
-
 </svg>

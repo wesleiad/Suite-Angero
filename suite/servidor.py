@@ -28,7 +28,7 @@ PORTA = int(os.environ.get("SUITE_PORTA", "8790"))
 HOSTS_OK = {f"127.0.0.1:{PORTA}", f"localhost:{PORTA}"}
 TIPOS = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
          ".js": "text/javascript; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml",
-         ".ico": "image/x-icon", ".woff2": "font/woff2"}
+         ".ico": "image/x-icon", ".woff2": "font/woff2", ".ttf": "font/ttf"}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -82,7 +82,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(programas.situacao())
         if url.path == "/api/config":
             return self._json({"config": assistente.config_publica(),
-                               "pastas_busca": [str(p) for p in assistente.pastas_busca()]})
+                               "pastas_busca": [str(p) for p in sum(assistente.pastas_busca(), [])]})
         if url.path == "/api/atualizacoes":
             return self._json(atualizador.estado)
         if url.path == "/api/arquivos":

@@ -1,9 +1,11 @@
 """Assistente Angerô: IA na nuvem (Groq ou Gemini, plano gratuito) com ferramentas para
 abrir programas, achar arquivos e comandar os programas da Suíte via MCP."""
+import collections
 import json
 import os
 import re
 import ssl
+import threading
 import time
 import unicodedata
 import urllib.error
@@ -37,6 +39,7 @@ PADRAO = {
     "modelos": {"groq": PROVEDORES["groq"]["modelo"], "gemini": PROVEDORES["gemini"]["modelo"]},
     "reserva": False,          # se o provedor principal estourar o limite, tenta o outro
     "pastas_extras": [],       # ex.: ["P:\\", "\\\\servidor\\pasta"]
+    "buscar_rede": True,       # procurar também nas unidades de rede mapeadas (P:\, etc.)
     "fluxogama_junto_illustre": False,  # abrir o painel do Fluxogama ao lado do Illustre
 }
 
@@ -100,7 +103,7 @@ def salvar_config(novo: dict) -> dict:
         cfg = json.loads(ARQ_CONFIG.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         cfg = {}
-    for k in ("pastas_extras", "fluxogama_junto_illustre"):
+    for k in ("pastas_extras", "fluxogama_junto_illustre", "buscar_rede", "cor_tema"):
         if k in novo:
             cfg[k] = novo[k]
     for prov, valor in (novo.get("modelos") or {}).items():  # troca automática de modelo aposentado
@@ -120,6 +123,8 @@ def config_publica() -> dict:
     return {"assistente_configurado": bool(cfg["chaves"].get("gemini")),
             "origem": central.get("origem", "usuário" if cfg["chaves"].get("gemini") else ""),
             "pastas_extras": cfg.get("pastas_extras", []),
+            "buscar_rede": cfg.get("buscar_rede", True) is not False,
+            "cor_tema": cfg.get("cor_tema", "") if re.fullmatch(r"#[0-9a-fA-F]{6}", cfg.get("cor_tema", "") or "") else "",
             "fluxogama_junto_illustre": bool(cfg.get("fluxogama_junto_illustre"))}
 
 
@@ -134,7 +139,21 @@ def _pasta_shell(nome_reg: str, padrao: Path) -> Path:
         return padrao
 
 
-def pastas_busca() -> list[Path]:
+def unidades_rede() -> list[Path]:
+    """Unidades de rede mapeadas neste computador (P:\\, etc.)."""
+    import ctypes
+    k32 = ctypes.windll.kernel32
+    mascara, saida = k32.GetLogicalDrives(), []
+    for i in range(26):
+        if mascara & (1 << i):
+            raiz = f"{chr(65 + i)}:\\"
+            if k32.GetDriveTypeW(raiz) == 4:  # DRIVE_REMOTE
+                saida.append(Path(raiz))
+    return saida
+
+
+def pastas_busca() -> tuple[list[Path], list[Path]]:
+    """(pastas locais, pastas de rede): as locais primeiro, a rede com o tempo que sobrar."""
     casa = Path.home()
     base = [
         _pasta_shell("Desktop", casa / "Desktop"),
@@ -143,49 +162,93 @@ def pastas_busca() -> list[Path]:
         _pasta_shell("My Pictures", casa / "Pictures"),
         _pasta_shell("My Video", casa / "Videos"),
     ]
-    extras = [Path(p) for p in ler_config().get("pastas_extras", [])]
-    vistas, saida = set(), []
-    for p in base + extras:
+    cfg = ler_config()
+    extras = [Path(p) for p in cfg.get("pastas_extras", [])]
+    rede = unidades_rede() if cfg.get("buscar_rede", True) is not False else []
+    letras_rede = {p.drive.upper() for p in rede}
+    vistas, locais, remotas = set(), [], []
+    for p in base + extras + rede:
         chave = str(p).lower()
-        if chave not in vistas and p.exists():
+        if chave in vistas:
+            continue
+        try:
+            existe = p.exists()
+        except OSError:
+            existe = False
+        if existe:
             vistas.add(chave)
-            saida.append(p)
-    return saida
+            # caminho \\servidor\... ou numa letra de rede: vai para o fim da busca
+            remota = str(p).startswith("\\\\") or p.drive.upper() in letras_rede
+            (remotas if remota else locais).append(p)
+    return locais, remotas
 
 
 def _sem_acento(t: str) -> str:
     return "".join(c for c in unicodedata.normalize("NFD", t.lower()) if unicodedata.category(c) != "Mn")
 
 
-IGNORAR = {"appdata", "node_modules", "$recycle.bin", "windows", "program files", "program files (x86)", ".git"}
+IGNORAR = {"appdata", "node_modules", "$recycle.bin", "windows", "program files", "program files (x86)", ".git",
+           "target", "venv", ".venv", "__pycache__", "system volume information"}
+
+
+def _procurar_em(raiz: Path, palavras: list[str], exts: set[str], fim: float, maximo: int,
+                 achados: list, trava: threading.Lock, incompleta: list) -> None:
+    """Percorre `raiz` por níveis (o que está mais perto da raiz primeiro) até `fim`."""
+    fila = collections.deque([raiz])
+    while fila:
+        if time.time() > fim:
+            incompleta.append(str(raiz))
+            return
+        pasta = fila.popleft()
+        try:
+            with os.scandir(pasta) as itens:
+                entradas = list(itens)
+        except OSError:
+            continue
+        for e in entradas:
+            try:
+                if e.is_dir(follow_symlinks=False):
+                    if e.name.lower() not in IGNORAR and not e.name.startswith("."):
+                        fila.append(Path(e.path))
+                    continue
+            except OSError:
+                continue
+            if exts and Path(e.name).suffix.lower() not in exts:
+                continue
+            nome = _sem_acento(e.name)
+            if all(p in nome for p in palavras):
+                try:
+                    st = e.stat()
+                except OSError:
+                    continue
+                with trava:
+                    achados.append({"caminho": e.path, "tamanho_kb": st.st_size // 1024, "_mtime": st.st_mtime,
+                                    "modificado": time.strftime("%d/%m/%Y %H:%M", time.localtime(st.st_mtime))})
+                    if len(achados) >= maximo:
+                        return
 
 
 def buscar_arquivos(termo: str, extensoes: list[str] | None = None, limite: int = 25) -> dict:
+    """Procura em todas as pastas ao mesmo tempo (uma linha de execução por pasta), para que a rede
+    (P:\\, T:\\ do Fileserver...) não fique sem vez atrás de uma pasta grande."""
     palavras = _sem_acento(termo or "").split()
     exts = {("." + e.lower().lstrip(".")) for e in (extensoes or [])}
-    achados, fim = [], time.time() + 12
-    for raiz in pastas_busca():
-        for pasta, subpastas, arquivos in os.walk(raiz):
-            subpastas[:] = [s for s in subpastas if s.lower() not in IGNORAR and not s.startswith(".")]
-            for a in arquivos:
-                if exts and Path(a).suffix.lower() not in exts:
-                    continue
-                nome = _sem_acento(a)
-                if all(p in nome for p in palavras):
-                    caminho = Path(pasta) / a
-                    try:
-                        st = caminho.stat()
-                    except OSError:
-                        continue
-                    achados.append({"caminho": str(caminho), "tamanho_kb": st.st_size // 1024,
-                                    "modificado": time.strftime("%d/%m/%Y %H:%M", time.localtime(st.st_mtime))})
-            if time.time() > fim or len(achados) >= limite * 3:
-                break
-        if time.time() > fim:
-            break
-    achados.sort(key=lambda x: x["modificado"][6:10] + x["modificado"][3:5] + x["modificado"][:2], reverse=True)
-    return {"pastas_pesquisadas": [str(p) for p in pastas_busca()], "resultados": achados[:limite],
-            "busca_incompleta": time.time() > fim}
+    achados, incompleta, trava = [], [], threading.Lock()
+    fim = time.time() + 25
+    locais, remotas = pastas_busca()
+    linhas = [threading.Thread(target=_procurar_em, daemon=True,
+                               args=(raiz, palavras, exts, fim, limite * 6, achados, trava, incompleta))
+              for raiz in locais + remotas]
+    for t in linhas:
+        t.start()
+    for t in linhas:
+        t.join(max(0.0, fim - time.time()) + 1)
+    with trava:
+        lista = sorted(achados, key=lambda x: x["_mtime"], reverse=True)[:limite]
+    for x in lista:
+        x.pop("_mtime", None)
+    return {"pastas_pesquisadas": [str(p) for p in locais + remotas], "resultados": lista,
+            "busca_incompleta": bool(incompleta) or any(t.is_alive() for t in linhas)}
 
 
 # ---------------------------------------------------------------- ferramentas da IA
@@ -205,7 +268,7 @@ FERRAMENTAS = [
     {"type": "function", "function": {
         "name": "buscar_arquivos",
         "description": "Procura arquivos pelo nome (todas as palavras precisam aparecer, acentos ignorados) "
-                       "na Área de Trabalho, Documentos, Downloads, Imagens, Vídeos e pastas extras configuradas.",
+                       "na Área de Trabalho, Documentos, Downloads, Imagens, Vídeos, pastas extras configuradas e unidades de rede (P:\\ etc.).",
         "parameters": {"type": "object", "properties": {
             "termo": {"type": "string", "description": "palavras do nome do arquivo"},
             "extensoes": {"type": "array", "items": {"type": "string"}, "description": "ex.: [\"ai\",\"pdf\"]"}},

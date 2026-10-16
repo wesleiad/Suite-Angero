@@ -57,6 +57,10 @@ não envie informações sigilosas pelo assistente.
 ## Código-base e licença
 
 Desenvolvido por **Weslei Domingues (TI)** para o Grupo Angerô.
+
+© 2026 Weslei Domingues. Identidade visual "Lua Nova" com as cores da Angerô (ícones em `icones/`).
+Fontes: Montserrat e Fraunces, ambas sob a SIL Open Font License 1.1 (licenças em `fontes/` e
+`suite/web/fonts/`).
 Os cinco programas foram construídos a partir do código aberto do projeto **ArtCraft**
 (VectorCraft, PhotoCraft, PdfCraft, FilmCraft e LightCraft — https://github.com/storytold), usado como base,
 sob licença MIT OU Apache-2.0; os avisos de licença originais estão em cada repositório.

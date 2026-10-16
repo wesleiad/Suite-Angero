@@ -40,6 +40,23 @@ TROCAS = {
             ('"Not supported in FilmCraft yet"', '"Ainda não disponível no Cena"'),
             ('"FilmCraft always composites in linear light"', '"O Cena sempre compõe em luz linear"'),
         ],
+        # Nome do projeto de exemplo que abre ao iniciar (aparece no título da janela)
+        "crates/engine/src/demo.rs": [
+            ('Project::new("FilmCraft Demo")', 'Project::new("Projeto de exemplo")'),
+            ('p.new_sequence("Main Edit",', 'p.new_sequence("Edição principal",'),
+        ],
+        "crates/engine/src/project_tools_tests.rs": [
+            ('i.name == "Main Edit"', 'i.name == "Edição principal"'),
+        ],
+        "crates/ui-egui/tests/sequence_ui.rs": [
+            ('("sequenceSettings.name", "Main Edit")', '("sequenceSettings.name", "Edição principal")'),
+        ],
+        "crates/engine/src/commands.rs": [
+            ('unwrap_or("Untitled").to_string()', 'unwrap_or("Sem título").to_string()'),
+        ],
+        "crates/engine/src/clip_ops.rs": [
+            ('Project::new("Untitled")', 'Project::new("Sem título")'),
+        ],
     },
     "lightbridge-angero": {
         "crates/ui-egui/src/lib.rs": [
