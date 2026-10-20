@@ -5,6 +5,7 @@ Uso: python servidor.py  (porta pelo env SUITE_PORTA, padrão 8790)
 """
 import json
 import os
+import socket
 import sys
 import threading
 import webbrowser
@@ -137,6 +138,17 @@ class Handler(BaseHTTPRequestHandler):
         return self._json({"erro": "rota"}, 404)
 
 
+class ServidorUnico(ThreadingHTTPServer):
+    """Porta só deste processo: no Windows o padrão (SO_REUSEADDR) deixava cada abertura da Suíte
+    subir mais um servidor na mesma porta, em vez de repassar o pedido ao que já estava aberto."""
+    allow_reuse_address = False
+
+    def server_bind(self):
+        if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
+
+
 def _ja_rodando(acao, dados):
     """Manda o pedido para o iniciador que já está aberto."""
     import urllib.request
@@ -156,13 +168,13 @@ def main():
     elif "--fluxogama" in sys.argv:
         acao = ("/api/fluxogama", {})
     try:
-        srv = ThreadingHTTPServer(("127.0.0.1", PORTA), Handler)
+        srv = ServidorUnico(("127.0.0.1", PORTA), Handler)
     except OSError:
         # já tem um iniciador rodando: só repassa o pedido
         _ja_rodando(*acao) if acao else abrir_janela()
         return
     try:  # plugin Fluxogama em outra porta (outra origem: não enxerga a API do iniciador)
-        fxg = ThreadingHTTPServer(("127.0.0.1", fluxogama.PORTA), fluxogama.HandlerFluxogama)
+        fxg = ServidorUnico(("127.0.0.1", fluxogama.PORTA), fluxogama.HandlerFluxogama)
         threading.Thread(target=fxg.serve_forever, daemon=True).start()
     except OSError:
         pass
@@ -182,9 +194,7 @@ def main():
 def _painel_junto_do_illustre(pid, arquivo):
     if pid != "vetor":
         return
-    import subprocess
-    # botão "Extensões" na barra de cima do Illustre (processo próprio; fecha junto com o Illustre)
-    subprocess.Popen([sys.executable, str(AQUI / "extensoes.py")], cwd=str(AQUI), creationflags=0x08000000)
+    # o botão "Extensões" agora é do próprio Illustre (lê `extensoes.py --listar` e pede /api/extensao)
     if assistente.ler_config().get("fluxogama_junto_illustre", False):
         abrir_painel_fluxogama()
 
