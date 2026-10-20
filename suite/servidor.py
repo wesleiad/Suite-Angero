@@ -8,6 +8,7 @@ import os
 import socket
 import sys
 import threading
+import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -167,18 +168,29 @@ def main():
             acao[1]["arquivo"] = sys.argv[sys.argv.index("--arquivo") + 1]
     elif "--fluxogama" in sys.argv:
         acao = ("/api/fluxogama", {})
-    try:
-        srv = ServidorUnico(("127.0.0.1", PORTA), Handler)
-    except OSError:
+    # reiniciando depois de atualizar: a versão anterior pode levar uns segundos para soltar as portas
+    tentativas = 30 if "--reiniciando" in sys.argv else 1
+    for i in range(tentativas):
+        try:
+            srv = ServidorUnico(("127.0.0.1", PORTA), Handler)
+            break
+        except OSError:
+            if i + 1 < tentativas:
+                time.sleep(0.5)
+    else:
         # já tem um iniciador rodando: só repassa o pedido
         _ja_rodando(*acao) if acao else abrir_janela()
         return
-    try:  # plugin Fluxogama em outra porta (outra origem: não enxerga a API do iniciador)
-        fxg = ServidorUnico(("127.0.0.1", fluxogama.PORTA), fluxogama.HandlerFluxogama)
-        threading.Thread(target=fxg.serve_forever, daemon=True).start()
-    except OSError:
-        pass
+    for i in range(tentativas):
+        try:  # plugin Fluxogama em outra porta (outra origem: não enxerga a API do iniciador)
+            fxg = ServidorUnico(("127.0.0.1", fluxogama.PORTA), fluxogama.HandlerFluxogama)
+            threading.Thread(target=fxg.serve_forever, daemon=True).start()
+            break
+        except OSError:
+            if i + 1 < tentativas:
+                time.sleep(0.5)
     programas.GANCHOS_ABRIR.append(_painel_junto_do_illustre)
+    atualizador.AO_ATUALIZAR_SUITE.append(_reiniciar_quando_livre)
     atualizador.iniciar_em_segundo_plano()
     print(f"Suíte Angerô em http://127.0.0.1:{PORTA}/")
     if acao:
@@ -189,6 +201,23 @@ def main():
         srv.serve_forever()
     finally:
         programas.PONTES.fechar_todas()
+
+
+def _reiniciar_quando_livre():
+    """Depois de uma atualização da Suíte, troca este servidor por um novo (com o código novo).
+    Espera o painel do Fluxogama ser fechado: o login dele fica na memória deste servidor."""
+    def trabalho():
+        import subprocess
+        import janelas
+        while janelas.janelas(titulo="Fluxogama - Angerô"):
+            time.sleep(60)
+        programas.PONTES.fechar_todas()
+        # o novo espera as portas, que se soltam no os._exit (fechá-las antes derrubaria o laço principal)
+        subprocess.Popen([sys.executable, str(Path(__file__).resolve()), "--sem-janela", "--reiniciando"],
+                         cwd=str(Path(__file__).resolve().parent))
+        os._exit(0)
+
+    threading.Thread(target=trabalho, daemon=True).start()
 
 
 def _painel_junto_do_illustre(pid, arquivo):
@@ -204,8 +233,9 @@ def abrir_painel_fluxogama():
     import janelas
     existente = janelas.janelas(titulo="Fluxogama - Angerô")
     if not existente:
-        x, y, larg, alt = janelas.area_trabalho()
-        lp = janelas.largura_painel()
+        ill = janelas.janela_illustre()  # abre já no monitor do Illustre
+        x, y, larg, alt = janelas.area_trabalho(ill)
+        lp = janelas.largura_painel(ill)
         abrir_janela(f"http://127.0.0.1:{fluxogama.PORTA}/", f"{lp},{alt}", f"{x + larg - lp},{y}")
     threading.Thread(target=janelas.encaixar_illustre_e_painel, daemon=True).start()
 

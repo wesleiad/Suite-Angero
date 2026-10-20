@@ -28,6 +28,8 @@ RAIZ_SUITE = Path(__file__).resolve().parent.parent
 INTERVALO = 6 * 3600
 SSL = ssl.create_default_context()
 
+# chamados depois que a Suíte baixa uma versão nova (o servidor se reinicia para usá-la)
+AO_ATUALIZAR_SUITE = []
 estado = {"ultima_verificacao": None, "verificando": False, "itens": {}, "mensagem": ""}
 _trava = threading.Lock()
 
@@ -124,7 +126,9 @@ def atualizar_suite() -> dict:
     # plugins/ e python/ ficam como estão (extensões instaladas pela empresa e o Python do pacote)
     _extrair(_baixar(f"{GITHUB}/{REPO_SUITE}/releases/latest/download/suite-angero.zip"), RAIZ_SUITE)
     local_arq.write_text(remota, encoding="utf-8")
-    return {**info, "instalada": remota, "situacao": f"atualizado para {remota} — vale ao reabrir a Suíte"}
+    for f in AO_ATUALIZAR_SUITE:
+        f()
+    return {**info, "instalada": remota, "situacao": f"atualizado para {remota} — a Suíte reinicia sozinha"}
 
 
 def verificar():
