@@ -42,7 +42,8 @@ def chave(*partes):
 
 
 def iss(pid, p):
-    """Registros do Inno Setup. {#AppPasta_<id>} = pasta do programa (definida por quem inclui o arquivo).
+    """Registros do Inno Setup. {#AppPasta_<id>} = pasta do programa e {#ArqIcone} = nome do ícone com a versão
+    (definidos por quem inclui o arquivo).
     Se o instalador definir Cmd_<id> antes, ele substitui o comando de abertura (ex.: Illustre pela Suíte)."""
     pasta = "{#AppPasta_" + pid + "}"
     # o arquivo vem antes das opções: os programas só abrem o arquivo quando ele é o primeiro argumento
@@ -54,7 +55,7 @@ def iss(pid, p):
         desc = p["padrao"].get(ext, f"Arquivo {ext[1:].upper()}")
         linhas += [
             f'Root: HKCU; Subkey: "{chave(pg)}"; ValueType: string; ValueName: ""; ValueData: "{desc}"; Flags: uninsdeletekey',
-            f'Root: HKCU; Subkey: "{chave(pg, "DefaultIcon")}"; ValueType: string; ValueName: ""; ValueData: "{pasta}{BARRA}icone.ico"',
+            f'Root: HKCU; Subkey: "{chave(pg, "DefaultIcon")}"; ValueType: string; ValueName: ""; ValueData: "{pasta}{BARRA}{{#ArqIcone}}"',
             f'Root: HKCU; Subkey: "{chave(pg, "shell", "open", "command")}"; ValueType: string; ValueName: ""; ValueData: "{{#Cmd_{pid}}}"',
             f'Root: HKCU; Subkey: "{chave(ext, "OpenWithProgids")}"; ValueType: string; ValueName: "{pg}"; ValueData: ""; Flags: uninsdeletevalue',
         ]

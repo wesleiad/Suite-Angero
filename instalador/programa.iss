@@ -8,6 +8,11 @@
   #define Args ""
 #endif
 
+; O Windows guarda a imagem de cada ícone pelo caminho do arquivo: gravar o ícone novo com o mesmo
+; nome deixava os atalhos com o ícone antigo nos PCs que já tinham uma versão anterior. Por isso o
+; nome muda a cada versão, os antigos são apagados e, no fim, o cache de ícones é recarregado.
+#define ArqIcone "icone-" + Versao + ".ico"
+
 ; pasta usada pelas associações de arquivo (assoc\<id>.iss)
 #define AppPasta_illustre "{app}"
 #define AppPasta_fotografe "{app}"
@@ -51,13 +56,16 @@ Name: "pt"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 Name: "associar"; Description: "Usar o {#Nome} como programa padrão para os arquivos dele"; GroupDescription: "Arquivos:"
 Name: "atalho"; Description: "Criar atalho na Área de Trabalho"; GroupDescription: "Atalhos:"
 
+[InstallDelete]
+Type: files; Name: "{app}\icone*.ico"
+
 [Files]
 Source: "{#Fonte}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#Icones}\{#Icone}.ico"; DestDir: "{app}"; DestName: "icone.ico"; Flags: ignoreversion
+Source: "{#Icones}\{#Icone}.ico"; DestDir: "{app}"; DestName: "{#ArqIcone}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\{#Nome}"; Filename: "{app}\{#Exe}.exe"; Parameters: "{#Args}"; IconFilename: "{app}\icone.ico"
-Name: "{userdesktop}\{#Nome}"; Filename: "{app}\{#Exe}.exe"; Parameters: "{#Args}"; IconFilename: "{app}\icone.ico"; Tasks: atalho
+Name: "{group}\{#Nome}"; Filename: "{app}\{#Exe}.exe"; Parameters: "{#Args}"; IconFilename: "{app}\{#ArqIcone}"
+Name: "{userdesktop}\{#Nome}"; Filename: "{app}\{#Exe}.exe"; Parameters: "{#Args}"; IconFilename: "{app}\{#ArqIcone}"; Tasks: atalho
 
 [Registry]
 ; a Suíte Angerô procura os programas instalados por aqui
@@ -67,4 +75,5 @@ Root: HKCU; Subkey: "Software\Grupo Angero\Suite Angero\Programas\{#Id}"; ValueT
 #include AddBackslash(SourcePath) + "assoc\" + Id + ".iss"
 
 [Run]
+Filename: "{sys}\ie4uinit.exe"; Parameters: "-show"; Flags: runhidden skipifdoesntexist
 Filename: "{app}\{#Exe}.exe"; Parameters: "{#Args}"; Description: "Abrir o {#Nome}"; Flags: nowait postinstall skipifsilent

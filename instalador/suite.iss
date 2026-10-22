@@ -12,6 +12,10 @@
 #define AppPasta_pdf Base + "\PDF - Angerô"
 #define AppPasta_cena Base + "\Cena - Angerô"
 #define AppPasta_lightbridge Base + "\LightBridge - Angerô"
+; O Windows guarda a imagem de cada ícone pelo caminho do arquivo: gravar o ícone novo com o mesmo
+; nome deixava os atalhos com o ícone antigo nos PCs que já tinham uma versão anterior. Por isso o
+; nome muda a cada versão, os antigos são apagados e, no fim, o cache de ícones é recarregado.
+#define ArqIcone "icone-" + Versao + ".ico"
 ; o Illustre abre pela Suíte, para o botão Extensões aparecer
 #define Cmd_illustre '""{sys}\wscript.exe"" ""{app}\suite\iniciar_suite.vbs"" --abrir vetor --arquivo ""%1""'
 
@@ -31,7 +35,7 @@ PrivilegesRequired=lowest
 OutputDir={#Saida}
 OutputBaseFilename=Instalar Suíte Angerô
 SetupIconFile={#Raiz}\icones\ico\suite.ico
-UninstallDisplayIcon={app}\icones\ico\suite.ico
+UninstallDisplayIcon={app}\suite-{#Versao}.ico
 UninstallDisplayName=Suíte Angerô
 WizardStyle=modern
 Compression=lzma2/max
@@ -50,6 +54,14 @@ Name: "pt"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 [Tasks]
 Name: "associar"; Description: "Usar os programas da Suíte como padrão para os arquivos deles (.ai, .psd, .pdf...)"; GroupDescription: "Arquivos:"
 Name: "atalhos"; Description: "Criar atalhos na Área de Trabalho"; GroupDescription: "Atalhos:"
+
+[InstallDelete]
+Type: files; Name: "{#AppPasta_illustre}\icone*.ico"
+Type: files; Name: "{#AppPasta_fotografe}\icone*.ico"
+Type: files; Name: "{#AppPasta_pdf}\icone*.ico"
+Type: files; Name: "{#AppPasta_cena}\icone*.ico"
+Type: files; Name: "{#AppPasta_lightbridge}\icone*.ico"
+Type: files; Name: "{app}\suite-*.ico"
 
 [Files]
 ; iniciador, assistente e extensões
@@ -71,11 +83,12 @@ Source: "{#Programas}\pdf\*"; DestDir: "{#Base}\PDF - Angerô"; Flags: ignorever
 Source: "{#Programas}\cena\*"; DestDir: "{#Base}\Cena - Angerô"; Flags: ignoreversion recursesubdirs
 Source: "{#Programas}\lightbridge\*"; DestDir: "{#Base}\LightBridge - Angerô"; Flags: ignoreversion recursesubdirs
 
-Source: "{#Raiz}\icones\ico\vetor.ico"; DestDir: "{#AppPasta_illustre}"; DestName: "icone.ico"; Flags: ignoreversion
-Source: "{#Raiz}\icones\ico\foto.ico"; DestDir: "{#AppPasta_fotografe}"; DestName: "icone.ico"; Flags: ignoreversion
-Source: "{#Raiz}\icones\ico\pdf.ico"; DestDir: "{#AppPasta_pdf}"; DestName: "icone.ico"; Flags: ignoreversion
-Source: "{#Raiz}\icones\ico\video.ico"; DestDir: "{#AppPasta_cena}"; DestName: "icone.ico"; Flags: ignoreversion
-Source: "{#Raiz}\icones\ico\galeria.ico"; DestDir: "{#AppPasta_lightbridge}"; DestName: "icone.ico"; Flags: ignoreversion
+Source: "{#Raiz}\icones\ico\vetor.ico"; DestDir: "{#AppPasta_illustre}"; DestName: "{#ArqIcone}"; Flags: ignoreversion
+Source: "{#Raiz}\icones\ico\foto.ico"; DestDir: "{#AppPasta_fotografe}"; DestName: "{#ArqIcone}"; Flags: ignoreversion
+Source: "{#Raiz}\icones\ico\pdf.ico"; DestDir: "{#AppPasta_pdf}"; DestName: "{#ArqIcone}"; Flags: ignoreversion
+Source: "{#Raiz}\icones\ico\video.ico"; DestDir: "{#AppPasta_cena}"; DestName: "{#ArqIcone}"; Flags: ignoreversion
+Source: "{#Raiz}\icones\ico\galeria.ico"; DestDir: "{#AppPasta_lightbridge}"; DestName: "{#ArqIcone}"; Flags: ignoreversion
+Source: "{#Raiz}\icones\ico\suite.ico"; DestDir: "{app}"; DestName: "suite-{#Versao}.ico"; Flags: ignoreversion
 
 [Dirs]
 Name: "{app}\plugins"
@@ -94,17 +107,18 @@ Root: HKCU; Subkey: "{#Reg}\lightbridge"; ValueType: string; ValueName: "Pasta";
 #include AddBackslash(SourcePath) + "assoc\lightbridge.iss"
 
 [Icons]
-Name: "{group}\Suíte Angerô"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\suite\iniciar_suite.vbs"""; IconFilename: "{app}\icones\ico\suite.ico"
-Name: "{group}\Illustre - Angerô"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\suite\iniciar_suite.vbs"" --abrir vetor"; IconFilename: "{app}\icones\ico\vetor.ico"
-Name: "{group}\Fotografe - Angerô"; Filename: "{#Base}\Fotografe - Angerô\fotografe.exe"; Parameters: "--control 7981 --control-token-file {localappdata}\SuiteAngero\fotografe.token"; IconFilename: "{app}\icones\ico\foto.ico"
-Name: "{group}\PDF - Angerô"; Filename: "{#Base}\PDF - Angerô\pdf-angero.exe"; IconFilename: "{app}\icones\ico\pdf.ico"
-Name: "{group}\Cena - Angerô"; Filename: "{#Base}\Cena - Angerô\cena.exe"; Parameters: "--control 7982"; IconFilename: "{app}\icones\ico\video.ico"
-Name: "{group}\LightBridge - Angerô"; Filename: "{#Base}\LightBridge - Angerô\lightbridge.exe"; Parameters: "--control 7980"; IconFilename: "{app}\icones\ico\galeria.ico"
+Name: "{group}\Suíte Angerô"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\suite\iniciar_suite.vbs"""; IconFilename: "{app}\suite-{#Versao}.ico"
+Name: "{group}\Illustre - Angerô"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\suite\iniciar_suite.vbs"" --abrir vetor"; IconFilename: "{#AppPasta_illustre}\{#ArqIcone}"
+Name: "{group}\Fotografe - Angerô"; Filename: "{#Base}\Fotografe - Angerô\fotografe.exe"; Parameters: "--control 7981 --control-token-file {localappdata}\SuiteAngero\fotografe.token"; IconFilename: "{#AppPasta_fotografe}\{#ArqIcone}"
+Name: "{group}\PDF - Angerô"; Filename: "{#Base}\PDF - Angerô\pdf-angero.exe"; IconFilename: "{#AppPasta_pdf}\{#ArqIcone}"
+Name: "{group}\Cena - Angerô"; Filename: "{#Base}\Cena - Angerô\cena.exe"; Parameters: "--control 7982"; IconFilename: "{#AppPasta_cena}\{#ArqIcone}"
+Name: "{group}\LightBridge - Angerô"; Filename: "{#Base}\LightBridge - Angerô\lightbridge.exe"; Parameters: "--control 7980"; IconFilename: "{#AppPasta_lightbridge}\{#ArqIcone}"
 #ifexist AddBackslash(Raiz) + "plugins\fluxogama\CSXS\manifest.xml"
 Name: "{group}\Fluxogama - Angerô"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\suite\iniciar_suite.vbs"" --fluxogama"; IconFilename: "{app}\icones\ico\fluxogama.ico"
 #endif
-Name: "{userdesktop}\Suíte Angerô"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\suite\iniciar_suite.vbs"""; IconFilename: "{app}\icones\ico\suite.ico"; Tasks: atalhos
-Name: "{userdesktop}\Illustre - Angerô"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\suite\iniciar_suite.vbs"" --abrir vetor"; IconFilename: "{app}\icones\ico\vetor.ico"; Tasks: atalhos
+Name: "{userdesktop}\Suíte Angerô"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\suite\iniciar_suite.vbs"""; IconFilename: "{app}\suite-{#Versao}.ico"; Tasks: atalhos
+Name: "{userdesktop}\Illustre - Angerô"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\suite\iniciar_suite.vbs"" --abrir vetor"; IconFilename: "{#AppPasta_illustre}\{#ArqIcone}"; Tasks: atalhos
 
 [Run]
+Filename: "{sys}\ie4uinit.exe"; Parameters: "-show"; Flags: runhidden skipifdoesntexist
 Filename: "{sys}\wscript.exe"; Parameters: """{app}\suite\iniciar_suite.vbs"""; Description: "Abrir a Suíte Angerô"; Flags: nowait postinstall skipifsilent
