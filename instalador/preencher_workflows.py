@@ -11,7 +11,7 @@ SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(os.environ["LOCALAPPDATA"
 
 PROGRAMAS = [
     # id, pacote cargo, exe, nome, ícone, argumentos do atalho (porta de comando da IA)
-    ("illustre", "vectorcraft", "illustre", "Illustre - Angerô", "vetor", "--control 7979"),
+    ("illustre", "illustre", "illustre", "Illustre - Angerô", "vetor", "--control 7979"),
     ("fotografe", "photocraft", "fotografe", "Fotografe - Angerô", "foto",
      r"--control 7981 --control-token-file {localappdata}\SuiteAngero\fotografe.token"),
     ("pdf", "pdfcraft", "pdf-angero", "PDF - Angerô", "pdf", ""),

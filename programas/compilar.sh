@@ -11,7 +11,7 @@ export CARGO_HTTP_CHECK_REVOKE=false          # proxies corporativos com inspeç
 export CRAFT_FONTS_DIR="$SRC/craft-fonts"     # fontes embutidas, como nas versões oficiais
 
 declare -A PASTA=( [illustre]=illustre-angero [fotografe]=fotografe-angero [pdf]=pdf-angero [cena]=cena-angero [lightbridge]=lightbridge-angero )
-declare -A PACOTE=( [illustre]=vectorcraft [fotografe]=photocraft [pdf]=pdfcraft [cena]=filmcraft [lightbridge]=lightcraft )
+declare -A PACOTE=( [illustre]=illustre [fotografe]=photocraft [pdf]=pdfcraft [cena]=filmcraft [lightbridge]=lightcraft )
 
 alvos=("$@")
 [ ${#alvos[@]} -eq 0 ] && alvos=(illustre fotografe pdf cena lightbridge)

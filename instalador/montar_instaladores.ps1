@@ -1,5 +1,5 @@
 ﻿# Monta os instaladores da Suíte Angerô a partir dos programas compilados nesta máquina.
-# Saída padrão: Área de Trabalho\Instaladores Suíte Angerô
+# Saída padrão: D:\Instaladores - Personalizados\Instaladores Suíte Angerô
 #   Instalar Suíte Angerô.exe          (tudo)
 #   Instalar <Programa> - Angerô.exe    (avulsos)
 # Uso: powershell -ExecutionPolicy Bypass -File montar_instaladores.ps1 [-Versao 1.0.0.0]
@@ -7,7 +7,7 @@ param(
     [string]$Versao = "1.0.0.0",
     [string]$Src = "$env:LOCALAPPDATA\SuiteAngero\src",
     [string]$Python = "$env:LOCALAPPDATA\SuiteAngero\build\python",
-    [string]$Saida = (Join-Path ([Environment]::GetFolderPath('Desktop')) 'Instaladores Suíte Angerô')
+    [string]$Saida = 'D:\Instaladores - Personalizados\Instaladores Suíte Angerô'
 )
 $ErrorActionPreference = 'Stop'
 $Raiz = Split-Path $PSScriptRoot -Parent
